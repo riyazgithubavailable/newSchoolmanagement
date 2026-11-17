@@ -50,7 +50,9 @@ export const AppLayouts = ({
             collapsed={sidebarCollapsed}
             onToggle={() =>
               setSidebarCollapsed((prev) => !prev)
+             
             }
+             role="TEACHER"
           />
         </div>
       </aside>
@@ -86,6 +88,8 @@ export const AppLayouts = ({
       >
         <Sidebaars
           collapsed={false}
+          role="TEACHER"
+            isClassTeacher={true}
           onToggle={() => setMobileSidebarOpen(false)}
         />
       </aside>

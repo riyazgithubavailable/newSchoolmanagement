@@ -166,9 +166,9 @@ export default function Headers({
                     <BreadcrumbLink asChild>
                       <button
                         type="button"
-                        onClick={() =>
-                          navigate("/teacher/dashboard")
-                        }
+                        // onClick={() =>
+                        //   navigate("/teacher/dashboard")
+                        // }
                         className="flex items-center gap-2"
                       >
                         <Home className="h-4 w-4" />
@@ -199,9 +199,10 @@ export default function Headers({
                               <BreadcrumbLink asChild>
                                 <button
                                   type="button"
-                                  onClick={() =>
-                                    navigate(crumb.to)
-                                  }
+                                  className="cursor-text"
+                                  // onClick={() =>
+                                  //   navigate(crumb.to)
+                                  // }
                                 >
                                   {crumb.label}
                                 </button>

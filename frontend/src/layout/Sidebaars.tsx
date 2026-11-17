@@ -17,6 +17,8 @@ import {
   BookMarked,
   Shield,
   type LucideIcon,
+  MessageSquare,
+  BookOpen,
 } from "lucide-react";
 
 import { NavLink, useLocation } from "react-router-dom";
@@ -25,6 +27,8 @@ import { useState } from "react";
 interface SidebarProps {
   collapsed?: boolean;
   onToggle?: () => void;
+  role: UserRole;
+  isClassTeacher?: boolean;
 }
 
 interface MenuItem {
@@ -44,111 +48,261 @@ interface MenuItem {
 |--------------------------------------------------------------------------
 */
 
-const menuItems: MenuItem[] = [
-  {
-    label: "Dashboard",
-    to: "/teacher/dashboard",
-    icon: LayoutDashboard,
-  },
+type UserRole = "TEACHER" | "PRINCIPAL" | "ADMIN" | "STUDENT";
 
-  {
-    label: "My Classes",
-    to: "/teacher/classes",
-    icon: Users,
-     
-  },
+interface MenuItem {
+  label: string;
+  to?: string;
+  icon: LucideIcon;
+  badge?: number;
+  roles?: UserRole[];
+  children?: MenuItem[];
+}
 
-  {
-    label: "My Timetable",
-    to: "/teacher/timetable",
-    icon: CalendarDays,
-  },
+const getMenuItems = (
+  role: UserRole,
+  isClassTeacher = false
+): MenuItem[] => {
+  const menuItems: MenuItem[] = [
+    {
+      label: "Dashboard",
+      to: `/${role.toLowerCase()}/dashboard`,
+      icon: LayoutDashboard,
+    },
 
-  {
-    label: "Attendance",
-    icon: ClipboardCheck,
-    children: [
-      {
-        label: "Mark Attendance",
-        to: "/teacher/attendance/mark",
-        icon: CalendarCheck,
-      },
-      {
-        label: "Attendance History",
-        to: "/teacher/attendance/history",
-        icon: ClipboardList,
-      },
-    ],
-  },
+    // TEACHER MENU
+    {
+      label: "My Classes",
+      to: "/teacher/classes",
+      icon: Users,
+      roles: ["TEACHER"],
+    },
 
-  {
-    label: "Assignments",
-    icon: FileText,
-    children: [
-      {
-        label: "All Assignments",
-        to: "/teacher/assignments",
-        icon: FileText,
-      },
-      {
-        label: "Create Assignment",
-        to: "/teacher/assignments/create",
-        icon: PenLine,
-      },
-      {
-        label: "Submissions",
-        to: "/teacher/assignments/submissions",
-        icon: ClipboardList,
-      },
-    ],
-  },
+    {
+      label: "My Timetable",
+      to: "/teacher/timetable",
+      icon: CalendarDays,
+      roles: ["TEACHER"],
+    },
 
-  {
-    label: "Exams & Results",
-    icon: FileBarChart,
-    children: [
-      {
-        label: "Exam Schedule",
-        to: "/teacher/exams/schedule",
-        icon: CalendarDays,
-      },
-      {
-        label: "Enter Marks",
-        to: "/teacher/exams/marks",
-        icon: PenLine,
-      },
-      {
-        label: "Student Results",
-        to: "/teacher/exams/results",
-        icon: FileBarChart,
-      },
-    ],
-  },
+    {
+      label: "Attendance",
+      icon: ClipboardCheck,
+      roles: ["TEACHER"],
+      children: [
+        {
+          label: "Mark Attendance",
+          to: "/teacher/attendance/mark",
+          icon: CalendarCheck,
+        },
+        {
+          label: "Attendance History",
+          to: "/teacher/attendance/history",
+          icon: ClipboardList,
+        },
+      ],
+    },
 
-  {
-    label: "Students",
-    to: "/teacher/students",
-    icon: Users,
-  },
+    {
+      label: "Assignments",
+      icon: FileText,
+      roles: ["TEACHER"],
+      children: [
+        {
+          label: "All Assignments",
+          to: "/teacher/assignments",
+          icon: FileText,
+        },
+        {
+          label: "Create Assignment",
+          to: "/teacher/assignments/create",
+          icon: PenLine,
+        },
+        {
+          label: "Submissions",
+          to: "/teacher/assignments/submissions",
+          icon: ClipboardList,
+        },
+      ],
+    },
 
-  {
-    label: "Study Materials",
-    to: "/teacher/study-materials",
-    icon: BookMarked,
-  },
+    {
+      label: "Exams & Results",
+      icon: FileBarChart,
+      roles: ["TEACHER", "PRINCIPAL", "ADMIN"],
+      children: [
+        {
+          label: "Exam Schedule",
+          to: `/${role.toLowerCase()}/exams/schedule`,
+          icon: CalendarDays,
+        },
+        {
+          label: "Enter Marks",
+          to: "/teacher/exams/marks",
+          icon: PenLine,
+          roles: ["TEACHER"],
+        },
+        {
+          label: "Student Results",
+          to: "/teacher/exams/results",
+          icon: FileBarChart,
+          roles: ["TEACHER"],
+        },
+      ],
+    },
 
-  {
-    label: "Notices",
-    to: "/teacher/notices",
-    icon: Bell,
-  },
+    {
+      label: "Students",
+      to: `/${role.toLowerCase()}/students`,
+      icon: Users,
+      roles: ["TEACHER", "PRINCIPAL", "ADMIN"],
+    },
 
-  {
-    label: "Profile",
-    to: "/teacher/profile",
-    icon: UserCircle,
-  },
-];
+    {
+      label: "Study Materials",
+      to: "/teacher/study-materials",
+      icon: BookMarked,
+      roles: ["TEACHER"],
+    },
+
+    {
+      label: "Notices",
+      to: `/${role.toLowerCase()}/notices`,
+      icon: Bell,
+      roles: ["TEACHER", "PRINCIPAL", "ADMIN", "STUDENT"],
+    },
+
+    {
+      label: "My Attendance",
+      to: "/teacher/my-attendance",
+      icon: CalendarCheck,
+      roles: ["TEACHER"],
+    },
+
+    {
+      label: "Leave Management",
+      to: "/teacher/leave",
+      icon: CalendarDays,
+      roles: ["TEACHER"],
+    },
+
+    {
+      label: "Messages",
+      to: "/teacher/messages",
+      icon: MessageSquare,
+      roles: ["TEACHER"],
+    },
+
+    {
+      label: "Class Teacher",
+      icon: GraduationCap,
+      roles: ["TEACHER"],
+      children: [
+        {
+          label: "My Class",
+          to: "/teacher/class-teacher/overview",
+          icon: Users,
+        },
+        {
+          label: "Student Progress",
+          to: "/teacher/class-teacher/progress",
+          icon: FileBarChart,
+        },
+        {
+          label: "Parent Communication",
+          to: "/teacher/class-teacher/parents",
+          icon: MessageSquare,
+        },
+      ],
+    },
+
+    // PRINCIPAL / ADMIN MENU
+    {
+      label: "Teachers",
+      to: "/admin/teachers",
+      icon: Users,
+      roles: ["PRINCIPAL", "ADMIN"],
+    },
+
+    {
+      label: "Teacher Leave Requests",
+      to: "/admin/teacher-leaves",
+      icon: CalendarDays,
+      roles: ["PRINCIPAL", "ADMIN"],
+    },
+
+    {
+      label: "School Management",
+      icon: Shield,
+      roles: ["PRINCIPAL", "ADMIN"],
+      children: [
+        {
+          label: "Classes & Sections",
+          to: "/admin/classes",
+          icon: BookOpen,
+        },
+        {
+          label: "Subjects",
+          to: "/admin/subjects",
+          icon: BookMarked,
+        },
+        {
+          label: "Timetable Management",
+          to: "/admin/timetable",
+          icon: CalendarDays,
+        },
+      ],
+    },
+
+    // STUDENT MENU
+    {
+      label: "My Assignments",
+      to: "/student/assignments",
+      icon: FileText,
+      roles: ["STUDENT"],
+    },
+
+    {
+      label: "My Results",
+      to: "/student/results",
+      icon: FileBarChart,
+      roles: ["STUDENT"],
+    },
+
+    {
+      label: "My Profile",
+      to: `/${role.toLowerCase()}/profile`,
+      icon: UserCircle,
+    },
+  ];
+
+  const filterMenu = (items: MenuItem[]): MenuItem[] => {
+    return items
+      .filter((item) => !item.roles || item.roles.includes(role))
+      .map((item) => ({
+        ...item,
+        children: item.children
+          ? filterMenu(item.children)
+          : undefined,
+      }))
+      .filter((item) => {
+        if (item.children) {
+          return item.children.length > 0;
+        }
+        return true;
+      });
+  };
+
+  const filteredItems = filterMenu(menuItems);
+
+  if (role === "TEACHER" && !isClassTeacher) {
+    return filteredItems.filter(
+      (item) => item.label !== "Class Teacher"
+    );
+  }
+
+  return filteredItems;
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -187,9 +341,11 @@ const isMenuActive = (
 export const Sidebaars = ({
   collapsed = false,
   onToggle,
+  role,
+  isClassTeacher = false,
 }: SidebarProps) => {
   const location = useLocation();
-
+const menuItems = getMenuItems(role, isClassTeacher);
   const [hoveredMenu, setHoveredMenu] = useState<string | null>(
     null
   );
@@ -220,7 +376,7 @@ export const Sidebaars = ({
 
         {!collapsed && (
           <div className="ml-3">
-            <h1 className="text-[20px] font-semibold tracking-tight">
+            <h1 className="text-[20px] text-white font-semibold tracking-tight">
               InstituteOS
             </h1>
 
