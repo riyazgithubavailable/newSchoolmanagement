@@ -1,5 +1,9 @@
 # 04 — User flows
 
+## Creating the platform owner (once)
+Super admins are created only from the server terminal:
+`npm run create-super-admin -- --email you@company.com --name "Your Name"` (see [02-setup](02-setup.md)).
+
 ## Onboarding a new school (platform owner)
 1. Sign in → login page → **Platform owner? Sign in here** (no school code).
 2. **Schools → Add School**: school name, code (suggested from the name, e.g. *Delhi Public School* → `DPS`),

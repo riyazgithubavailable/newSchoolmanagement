@@ -47,6 +47,20 @@ Check: http://localhost:5000/api/v1/health → `"database": "connected"`.
 | Admin | DEMO01 | admin@demo.school | Admin@123 |
 | Teacher | DEMO01 | teacher@demo.school | Teacher@123 |
 
+### Your own super admin account
+The seed creates a demo super admin for development. To create your real platform-owner account
+(and **always** on a live server — the seed refuses to run in production because it adds a demo school):
+
+```bash
+cd backend
+npm run create-super-admin -- --email you@company.com --name "Your Name"
+# you are asked for the password (hidden). On a server without a terminal:
+#   SUPERADMIN_PASSWORD=... npm run create-super-admin -- --email ...
+```
+There is intentionally **no API or sign-up page** for super admins. Run the command again with another
+email to add a second owner (e.g. a co-founder). Forgot the password? Use *Forgot password* on the
+login page with *Platform owner* selected.
+
 ## 4. Frontend
 ```bash
 cd frontend

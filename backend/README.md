@@ -33,6 +33,12 @@ Check it works: open http://localhost:5000/api/v1/health — `"database": "conne
 - All routes are under `/api/v1`.
 - Success: `{ "success": true, "data": ... }` · Error: `{ "success": false, "error": { "code", "message" } }`
 
+## Platform owner account
+```bash
+npm run create-super-admin -- --email you@company.com --name "Your Name"   # asks for the password
+```
+Use this on production. `npm run seed` is development-only.
+
 ## First run: demo data
 
 ```bash

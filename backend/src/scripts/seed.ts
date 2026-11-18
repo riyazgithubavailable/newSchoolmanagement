@@ -2,6 +2,8 @@
 // Creates (once) the platform super admin, a demo school and its principal.
 // Safe to run again: existing records are left untouched.
 //
+// DEVELOPMENT ONLY. For a live server use `npm run create-super-admin`.
+//
 // Override the defaults in .env:
 //   SEED_SUPERADMIN_EMAIL, SEED_SUPERADMIN_PASSWORD, SEED_PRINCIPAL_PASSWORD
 
@@ -52,8 +54,11 @@ async function ensureUser(
 }
 
 async function main() {
-  if (env.isProduction && (!process.env.SEED_SUPERADMIN_PASSWORD || !process.env.SEED_PRINCIPAL_PASSWORD)) {
-    throw new Error("In production set SEED_SUPERADMIN_PASSWORD and SEED_PRINCIPAL_PASSWORD — default passwords are not allowed.");
+  if (env.isProduction) {
+    // the seed creates a fake "Demo Public School" — never put that in a live database
+    throw new Error(
+      "The seed is for development only. On production run: npm run create-super-admin -- --email you@company.com --name \"Your Name\"",
+    );
   }
 
   await connectDB();
