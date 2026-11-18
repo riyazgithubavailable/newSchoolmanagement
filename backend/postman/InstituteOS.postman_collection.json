@@ -1,0 +1,697 @@
+{
+  "info": {
+    "name": "InstituteOS API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "School management REST API (web + Android). Run \"Login\" first — it stores the tokens automatically."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api/v1"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "schoolId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [
+          {
+            "key": "X-Client",
+            "value": "postman"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register (Teacher / Parent / Student)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.success) pm.collectionVariables.set(\"userId\", j.data.user.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"schoolCode\": \"DEMO01\",\n  \"fullName\": \"Neha Verma\",\n  \"email\": \"neha@demo.school\",\n  \"phone\": \"9876543210\",\n  \"password\": \"Teacher123\",\n  \"role\": \"TEACHER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Creates a PENDING account. A principal/admin must approve it before login."
+          }
+        },
+        {
+          "name": "Login (Principal)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.success && j.data && j.data.tokens) {",
+                  "  pm.collectionVariables.set(\"accessToken\", j.data.tokens.accessToken);",
+                  "  pm.collectionVariables.set(\"refreshToken\", j.data.tokens.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"schoolCode\": \"DEMO01\",\n  \"email\": \"principal@demo.school\",\n  \"password\": \"Principal@123\",\n  \"role\": \"PRINCIPAL\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login (Teacher)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.success && j.data && j.data.tokens) {",
+                  "  pm.collectionVariables.set(\"accessToken\", j.data.tokens.accessToken);",
+                  "  pm.collectionVariables.set(\"refreshToken\", j.data.tokens.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"schoolCode\": \"DEMO01\",\n  \"email\": \"neha@demo.school\",\n  \"password\": \"Teacher123\",\n  \"role\": \"TEACHER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login (Super Admin — no school code)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.success && j.data && j.data.tokens) {",
+                  "  pm.collectionVariables.set(\"accessToken\", j.data.tokens.accessToken);",
+                  "  pm.collectionVariables.set(\"refreshToken\", j.data.tokens.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"superadmin@instituteos.local\",\n  \"password\": \"SuperAdmin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refresh token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.success && j.data && j.data.tokens) {",
+                  "  pm.collectionVariables.set(\"accessToken\", j.data.tokens.accessToken);",
+                  "  pm.collectionVariables.set(\"refreshToken\", j.data.tokens.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout (this device)",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (Principal / Admin)",
+      "item": [
+        {
+          "name": "List pending accounts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users?status=PENDING&page=1&limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDING"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve account",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Reject account",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"REJECTED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Disable account",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DISABLED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}",
+                "status"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Schools (Super Admin)",
+      "description": "Run \"Auth → Login (Super Admin)\" first.",
+      "item": [
+        {
+          "name": "Create school + principal",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.success && j.data && j.data.id) pm.collectionVariables.set(\"schoolId\", j.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"school\": {\n    \"name\": \"Delhi Public School\",\n    \"code\": \"DPS01\",\n    \"email\": \"office@dps.edu\",\n    \"phone\": \"9876543210\",\n    \"address\": \"Bhubaneswar, Odisha\"\n  },\n  \"principal\": {\n    \"fullName\": \"Anita Rao\",\n    \"email\": \"principal@dps.edu\",\n    \"phone\": \"9876500000\",\n    \"password\": \"Principal123\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/schools",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schools"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List schools",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/schools?page=1&limit=20&search=&status=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schools"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": ""
+                },
+                {
+                  "key": "status",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get school",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/schools/{{schoolId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schools",
+                "{{schoolId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Suspend school",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SUSPENDED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/schools/{{schoolId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schools",
+                "{{schoolId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Activate school",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/schools/{{schoolId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schools",
+                "{{schoolId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add another principal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"New Principal\",\n  \"email\": \"new.principal@dps.edu\",\n  \"password\": \"Principal456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/schools/{{schoolId}}/principals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "schools",
+                "{{schoolId}}",
+                "principals"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
