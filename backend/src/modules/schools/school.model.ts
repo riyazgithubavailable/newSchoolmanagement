@@ -1,6 +1,7 @@
 import { Schema, model, type InferSchemaType, type HydratedDocument } from "mongoose";
 
 export const SCHOOL_STATUS = { ACTIVE: "ACTIVE", SUSPENDED: "SUSPENDED" } as const;
+export const SCHOOL_BOARDS = ["CBSE", "ICSE", "STATE", "IB", "OTHER"] as const;
 
 const schoolSchema = new Schema(
   {
@@ -10,6 +11,10 @@ const schoolSchema = new Schema(
     email: { type: String, trim: true, lowercase: true },
     phone: { type: String, trim: true },
     address: { type: String, trim: true },
+    /** CBSE / ICSE / STATE / IB / OTHER — decides the grading scheme later */
+    board: { type: String, enum: [...SCHOOL_BOARDS, null], default: null },
+    affiliationNo: { type: String, trim: true },
+    website: { type: String, trim: true },
     status: {
       type: String,
       enum: Object.values(SCHOOL_STATUS),

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { requireAuthAllowPasswordChange } from "../../middleware/auth.js";
-import { forgotPasswordLimiter, loginLimiter, registerLimiter } from "../../middleware/rateLimit.js";
+import { forgotPasswordLimiter, loginLimiter } from "../../middleware/rateLimit.js";
 import { validate } from "../../middleware/validate.js";
 import { authController } from "./auth.controller.js";
 import {
@@ -8,14 +8,12 @@ import {
   forgotPasswordSchema,
   loginSchema,
   refreshSchema,
-  registerSchema,
   resetPasswordSchema,
 } from "./auth.schemas.js";
 
 // Express 5 forwards errors from async handlers to errorHandler automatically.
 export const authRouter = Router();
 
-authRouter.post("/register", registerLimiter, validate(registerSchema), authController.register);
 authRouter.post("/login", loginLimiter, validate(loginSchema), authController.login);
 authRouter.post("/refresh", validate(refreshSchema), authController.refresh);
 authRouter.post("/logout", validate(refreshSchema), authController.logout);

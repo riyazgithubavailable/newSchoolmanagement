@@ -40,7 +40,19 @@ beforeEach(async () => {
 
 const api = () => request(app);
 const login = (body: Record<string, unknown>) => api().post("/api/v1/auth/login").send(body);
-const register = (body: Record<string, unknown>) => api().post("/api/v1/auth/register").send(body);
+/** Self sign-up was removed; a PENDING account is created directly (e.g. future parent activation). */
+async function register(body: { schoolCode: string; fullName: string; email: string; password: string; role: string }) {
+  const school = await SchoolModel.findOne({ code: body.schoolCode.toUpperCase() });
+  const user = await UserModel.create({
+    schoolId: school!._id,
+    fullName: body.fullName,
+    email: body.email.toLowerCase(),
+    role: body.role,
+    status: "PENDING",
+    passwordHash: await hashPassword(body.password),
+  });
+  return { body: { data: { user: { id: String(user._id) } } } };
+}
 
 const teacher = {
   schoolCode: "aaa01", // lower-case on purpose
@@ -58,47 +70,9 @@ async function principalToken(code = "AAA01", email = "principal@a.com") {
 /* ------------------------------------------------------------------ */
 
 describe("POST /auth/register", () => {
-  it("creates a PENDING account and never returns the password", async () => {
-    const res = await register(teacher);
-    expect(res.status).toBe(201);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.user).toMatchObject({
-      email: "neha@mail.com",
-      role: "TEACHER",
-      status: "PENDING",
-      school: { code: "AAA01", name: "School A" },
-    });
-    expect(JSON.stringify(res.body)).not.toMatch(/passwordHash|Secret123/);
-  });
-
-  it("rejects an unknown school code", async () => {
-    const res = await register({ ...teacher, schoolCode: "NOPE" });
+  it("self sign-up has been removed (accounts are created by the school)", async () => {
+    const res = await api().post("/api/v1/auth/register").send({});
     expect(res.status).toBe(404);
-    expect(res.body.error.code).toBe("SCHOOL_NOT_FOUND");
-  });
-
-  it("does not allow signing up as PRINCIPAL or ADMIN", async () => {
-    for (const role of ["PRINCIPAL", "ADMIN", "SUPER_ADMIN"]) {
-      const res = await register({ ...teacher, role });
-      expect(res.status).toBe(400);
-      expect(res.body.error.code).toBe("VALIDATION_ERROR");
-    }
-  });
-
-  it("returns field-level errors for a weak password", async () => {
-    const res = await register({ ...teacher, password: "abcdefgh" });
-    expect(res.status).toBe(400);
-    expect(res.body.error.details).toEqual([{ field: "password", message: "Password must contain a number." }]);
-  });
-
-  it("rejects a duplicate email in the same school, allows it in another school", async () => {
-    await register(teacher);
-    const dup = await register({ ...teacher, email: "neha@mail.com" });
-    expect(dup.status).toBe(409);
-    expect(dup.body.error.code).toBe("EMAIL_TAKEN");
-
-    const other = await register({ ...teacher, schoolCode: "BBB01" });
-    expect(other.status).toBe(201);
   });
 });
 

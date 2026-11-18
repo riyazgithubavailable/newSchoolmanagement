@@ -2,7 +2,7 @@
 // class teacher and checks the page heading appears (no crash, guards OK).
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import App from "@/App";
 import { saveSession, clearSession } from "@/lib/auth";
 import type { AuthUser } from "@/types/school";
@@ -63,8 +63,8 @@ describe("route guards", () => {
     loginAs("ADMIN");
     window.location.hash = hash;
     render(<App />);
-    expect(await screen.findByRole("heading", { level: 1, name: "School Office Dashboard" })).toBeInTheDocument();
-    expect(window.location.hash).toBe("#/admin/dashboard");
+    await waitFor(() => expect(window.location.hash).toBe("#/admin/dashboard"));
+    expect((await screen.findAllByText("School Office")).length).toBeGreaterThan(0); // sidebar workspace label
   });
 
   it("hides class teacher pages from non class teachers", async () => {

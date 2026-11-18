@@ -4,7 +4,9 @@ import { Router } from "express";
 import { dbState } from "./config/db.js";
 import { env } from "./config/env.js";
 import { authRouter } from "./modules/auth/auth.routes.js";
+import { schoolRouter } from "./modules/academics/academics.routes.js";
 import { schoolsRouter } from "./modules/schools/schools.routes.js";
+import { staffRouter } from "./modules/staff/staff.js";
 import { usersRouter } from "./modules/users/users.routes.js";
 
 export const apiRouter = Router();
@@ -27,3 +29,5 @@ apiRouter.get("/health", (_req, res) => {
 apiRouter.use("/auth", authRouter);
 apiRouter.use("/users", usersRouter);
 apiRouter.use("/schools", schoolsRouter);
+apiRouter.use("/school", schoolRouter);
+apiRouter.use("/staff", staffRouter);

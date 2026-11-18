@@ -18,7 +18,7 @@ describe("API docs", () => {
 
     for (const [path, ops] of Object.entries(doc.paths)) {
       const url = "/api/v1" + path.replace(/\{\w+\}/g, fakeId);
-      for (const method of Object.keys(ops) as ("get" | "post" | "patch")[]) {
+      for (const method of Object.keys(ops) as ("get" | "post" | "patch" | "put" | "delete")[]) {
         const res = await api()[method](url).send({});
         // any answer except "this route doesn't exist" proves the route is mounted
         const routeMissing = res.status === 404 && res.body?.error?.message?.startsWith("Route ");
@@ -26,6 +26,6 @@ describe("API docs", () => {
         checked++;
       }
     }
-    expect(checked).toBeGreaterThanOrEqual(17);
+    expect(checked).toBeGreaterThanOrEqual(40);
   });
 });

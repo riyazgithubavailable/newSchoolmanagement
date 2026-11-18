@@ -20,6 +20,20 @@ const userSchema = new Schema(
       default: USER_STATUS.PENDING,
       index: true,
     },
+    /** HR details for staff (principal, admin, teacher) */
+    staffProfile: {
+      type: new Schema(
+        {
+          employeeId: { type: String, trim: true },
+          designation: { type: String, trim: true },
+          qualification: { type: String, trim: true },
+          gender: { type: String, enum: ["MALE", "FEMALE", "OTHER"] },
+          joiningDate: { type: Date },
+        },
+        { _id: false },
+      ),
+      default: undefined,
+    },
     /** who approved / rejected a self-registered account */
     reviewedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
     reviewedAt: { type: Date, default: null },
@@ -42,6 +56,11 @@ const userSchema = new Schema(
 
 // Same email can exist in two different schools, but only once per school.
 userSchema.index({ schoolId: 1, email: 1 }, { unique: true });
+// employee ids are unique inside a school (only when set)
+userSchema.index(
+  { schoolId: 1, "staffProfile.employeeId": 1 },
+  { unique: true, partialFilterExpression: { "staffProfile.employeeId": { $type: "string" } } },
+);
 
 export type User = InferSchemaType<typeof userSchema>;
 export type UserDoc = HydratedDocument<User>;

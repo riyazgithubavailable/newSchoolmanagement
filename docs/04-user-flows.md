@@ -18,13 +18,36 @@ Super admins are created only from the server terminal:
    works until it's changed (enforced by the API too).
 3. After saving, other devices are signed out and the dashboard opens.
 
-## Self sign-up (Teacher / Student / Parent)
-1. Login page → **Create an account** → role, name, school code, email, password.
-2. The account is created as **PENDING**; signing in shows *waiting for approval*.
-3. Principal or Admin approves (`ACTIVE`) or rejects it.
+## Setting up the school (principal / office admin)
+After the first sign in the dashboard shows a **setup checklist**; each step links to the right page.
 
-> Planned change (Phase 2–3): staff will be added by the principal/admin, and parent accounts will be
-> created/linked from student admissions. Self sign-up will stay only with verification.
+1. **School profile** (*School Setup → School Profile*, principal only) — board, phone, address, affiliation no.
+2. **Academic year** — e.g. `2026-27`, 1 Apr – 31 Mar. The first year added becomes *current*.
+3. **Classes & sections** — *Add from template* (Pre-primary, Primary, up to 8 / 10 / 12, Class 1–10, 1–12)
+   and choose sections (A, B...). Use *Custom class* for streams (Class 11 Science). Every class has an
+   *order* number (Nursery 1 … Class 12 = 15) used for sorting and next year's promotion.
+4. **Subjects** — tap suggestions or type your own.
+5. **Staff** — *Add Staff*: name, email, role (Teacher; *Office admin* only for the principal), HR details.
+   A temporary password is generated; the login details box appears once — copy and send it.
+   The person must choose their own password at first sign in.
+6. **Class teachers** — *Class & Subject Teachers* → pick a section → choose its class teacher
+   (one section per teacher).
+7. **Subject teachers** — same page: choose the teacher for each subject of the section (needs a current
+   academic year). Changes save immediately.
+
+Things in use can't be deleted (a subject with teachers assigned, a section with a class teacher, ...).
+
+## How people get accounts
+| Who | Created by |
+|---|---|
+| Super admin | server command `npm run create-super-admin` |
+| Principal | platform owner (*Schools → Add School*) |
+| Office admin | principal (*Staff → Add Staff*) |
+| Teacher | principal or office admin |
+| Students & parents | *(Phase 3)* from admissions; parents will activate with admission no. + date of birth |
+
+There is **no public sign-up**. Older accounts that are still *PENDING* can be approved or rejected under
+*Staff → Pending approval*.
 
 ## Forgot password
 1. Login → **Forgot password?** → school code + email (platform owner: no school code).

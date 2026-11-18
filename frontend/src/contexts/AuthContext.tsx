@@ -9,14 +9,13 @@ import {
   saveSession,
   updateSession,
 } from "@/lib/auth";
-import { authService, passwordService, type LoginPayload, type RegisterPayload } from "@/services/authService";
+import { authService, passwordService, type LoginPayload } from "@/services/authService";
 import type { AuthUser } from "@/types/school";
 
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   login: (payload: LoginPayload, remember: boolean) => Promise<AuthUser>;
-  register: (payload: RegisterPayload) => Promise<AuthUser>;
   logout: () => Promise<void>;
   changePassword: (currentPassword: string, newPassword: string) => Promise<AuthUser>;
 }
@@ -39,8 +38,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(res.user);
     return res.user;
   }, []);
-
-  const register = useCallback((payload: RegisterPayload) => authService.register(payload), []);
 
   const logout = useCallback(async () => {
     const refreshToken = getRefreshToken();
@@ -89,8 +86,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const value = useMemo<AuthContextType>(
-    () => ({ user, isAuthenticated: !!user, login, register, logout, changePassword }),
-    [user, login, register, logout, changePassword],
+    () => ({ user, isAuthenticated: !!user, login, logout, changePassword }),
+    [user, login, logout, changePassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -6,8 +6,8 @@ Order matters: each phase builds the data the next one needs.
 |---|---|---|
 | 0 | Git branch & commits, Swagger/OpenAPI docs, project docs | ✅ Done |
 | 1 | Change password, forced first-login change, forgot/reset via email, admin & platform password resets | ✅ Done |
-| 2 | **School setup**: academic year, classes & sections, subjects, staff accounts created by principal/admin, teaching assignments, class teacher | ⏳ Next |
-| 3 | Students & parents: admission records, parent accounts linked to children, bulk Excel import | Planned |
+| 2 | **School setup**: school profile, academic year, classes & sections (templates, streams), subjects, staff accounts created by principal/admin, class teachers, subject teachers; self sign-up removed | ✅ Done |
+| 3 | Students & parents: admission records, parent accounts linked to children, parent activation (admission no. + DOB), bulk Excel import | ⏳ Next |
 | 4 | Timetable (admin builds it, teachers/students read it) | Planned |
 | 5 | Teacher APIs: attendance, homework/assignments, marks/results, notices, leave, messages — replace frontend mocks | Planned |
 | 6 | Student & parent views (web + Android) | Planned |
@@ -16,7 +16,7 @@ Order matters: each phase builds the data the next one needs.
 
 ## Known gaps / decisions to revisit
 - Access tokens of a disabled user stay valid for up to 15 minutes (refresh and `/auth/me` stop at once).
-- Teacher pages still use mock data; the class-teacher flag is faked for every teacher until Phase 2.
+- Teacher pages still use mock data (Phase 5). The class-teacher flag now comes from the real section assignment.
+- Sections are not yet per academic year: at year rollover class teachers carry over until changed.
 - No email provider configured yet — set `SMTP_*` before going live.
-- `schoolId` filtering is done by hand in each query; a shared helper/plugin should enforce it (Phase 2).
-- Self sign-up will be restricted once staff/admissions exist (Phases 2–3).
+- `schoolId` filtering is written in each service (`findInSchool`, `currentSchoolId`) and covered by isolation tests in `backend/tests`; a Mongoose plugin could enforce it automatically later.

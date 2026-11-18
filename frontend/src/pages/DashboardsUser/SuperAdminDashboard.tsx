@@ -50,6 +50,7 @@ import {
   primaryBtn,
   secondaryBtn,
 } from "@/components/shared/PageKit";
+import { CredentialsModal, generatePassword, type Credentials } from "@/components/shared/Credentials";
 
 const PAGE_SIZE = 10;
 
@@ -322,28 +323,6 @@ function IconBtn({
 /* Helpers                                                              */
 /* ------------------------------------------------------------------ */
 
-interface Credentials {
-  title: string;
-  schoolName: string;
-  schoolCode: string;
-  email: string;
-  password: string;
-}
-
-/** 12 chars, always has upper, lower, digit and symbol */
-function generatePassword() {
-  const sets = ["ABCDEFGHJKLMNPQRSTUVWXYZ", "abcdefghijkmnpqrstuvwxyz", "23456789", "@#$%&*"];
-  const all = sets.join("");
-  const rand = (n: number) => crypto.getRandomValues(new Uint32Array(1))[0] % n;
-  const chars = sets.map((s) => s[rand(s.length)]);
-  while (chars.length < 12) chars.push(all[rand(all.length)]);
-  for (let i = chars.length - 1; i > 0; i--) {
-    const j = rand(i + 1);
-    [chars[i], chars[j]] = [chars[j], chars[i]];
-  }
-  return chars.join("");
-}
-
 /** Suggest a code from the name: "Delhi Public School" → "DPS" */
 const suggestCode = (name: string) =>
   name
@@ -487,6 +466,7 @@ function CreateSchoolModal({
         toast.success(`${school.name} created`);
         onCreated({
           title: "School created",
+          roleLabel: "Principal",
           schoolName: school.name,
           schoolCode: school.code,
           email: payload.principal.email.toLowerCase(),
@@ -616,6 +596,7 @@ function AddPrincipalModal({
           toast.success("Principal added");
           onCreated({
             title: "Principal added",
+          roleLabel: "Principal",
             schoolName: school.name,
             schoolCode: school.code,
             email: payload.email.toLowerCase(),
@@ -698,6 +679,7 @@ function SchoolDetailModal({
         onSuccess: () =>
           onPasswordReset({
             title: "Temporary password set",
+          roleLabel: "Principal",
             schoolName: school.name,
             schoolCode: school.code,
             email: p.email,
@@ -777,46 +759,5 @@ function Info({ label, value, className }: { label: string; value: string | null
       <p className="text-xs font-semibold text-gray-500">{label}</p>
       <p className="mt-0.5 text-sm text-[#0F1B33]">{value || "—"}</p>
     </div>
-  );
-}
-
-function CredentialsModal({ credentials, onClose }: { credentials: Credentials | null; onClose: () => void }) {
-  if (!credentials) return null;
-  const text = [
-    `InstituteOS login for ${credentials.schoolName}`,
-    `School code: ${credentials.schoolCode}`,
-    `Email: ${credentials.email}`,
-    `Password: ${credentials.password}`,
-    `Role: Principal`,
-  ].join("\n");
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Login details copied");
-    } catch {
-      toast.error("Couldn't copy — please select and copy the text manually.");
-    }
-  };
-
-  return (
-    <Modal
-      open
-      onClose={onClose}
-      title={credentials.title}
-      description="Share these login details with the principal. The password won't be shown again."
-      footer={
-        <>
-          <button type="button" className={secondaryBtn} onClick={copy}>
-            <Copy size={16} /> Copy details
-          </button>
-          <button type="button" className={primaryBtn} onClick={onClose}>
-            Done
-          </button>
-        </>
-      }
-    >
-      <pre className="whitespace-pre-wrap rounded-xl bg-[#FBF9F3] p-4 font-mono text-sm text-[#0F1B33]">{text}</pre>
-    </Modal>
   );
 }

@@ -61,7 +61,6 @@ into collection variables and used by every other request automatically.
 
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
-| POST | `/register` | – | Self sign-up for TEACHER / PARENT / STUDENT. Account is `PENDING` until approved. |
 | POST | `/login` | – | `{ schoolCode, email, password, role? }` → `{ user, tokens }`. Super admin omits `schoolCode`. |
 | POST | `/refresh` | – | `{ refreshToken }` → new token pair. The old refresh token stops working. |
 | POST | `/logout` | – | `{ refreshToken }` → logs out this device only. |
@@ -95,3 +94,6 @@ into collection variables and used by every other request automatically.
 | POST | `/:id/principals` | Add another principal account |
 
 School codes are 3–12 letters/numbers/dashes, stored upper-case, unique across the platform.
+
+## School setup & staff (Principal / Admin)
+See [docs/05-api.md](../docs/05-api.md) or http://localhost:5000/api/docs — `/school/*` and `/staff`.

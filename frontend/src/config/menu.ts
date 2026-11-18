@@ -15,7 +15,9 @@ import {
   LayoutDashboard,
   MessageSquare,
   School,
+  Settings2,
   TrendingUp,
+  UserCheck,
   UserCircle,
   Users,
   UsersRound,
@@ -90,9 +92,27 @@ const dashboardOnly = (role: UserRole): MenuItem[] => [
   { label: "Dashboard", to: getHomeRoute(role), icon: LayoutDashboard },
 ];
 
+/** Principal and office admin share the school management pages. */
+const schoolMenu = (role: UserRole): MenuItem[] => {
+  const base = getHomeRoute(role).replace("/dashboard", "");
+  return [
+    { label: "Dashboard", to: `${base}/dashboard`, icon: LayoutDashboard },
+    { label: "School Setup", to: `${base}/setup`, icon: Settings2 },
+    { label: "Staff", to: `${base}/staff`, icon: Users },
+    { label: "Class & Subject Teachers", to: `${base}/assignments`, icon: UserCheck },
+  ];
+};
+
 const SUPER_ADMIN_MENU: MenuItem[] = [{ label: "Schools", to: getHomeRoute("SUPER_ADMIN"), icon: Building2 }];
 
 export function getMenuItems(role: UserRole, isClassTeacher: boolean): MenuItem[] {
-  const items = role === "TEACHER" ? TEACHER_MENU : role === "SUPER_ADMIN" ? SUPER_ADMIN_MENU : dashboardOnly(role);
+  const items =
+    role === "TEACHER"
+      ? TEACHER_MENU
+      : role === "SUPER_ADMIN"
+        ? SUPER_ADMIN_MENU
+        : role === "PRINCIPAL" || role === "ADMIN"
+          ? schoolMenu(role)
+          : dashboardOnly(role);
   return items.filter((item) => !item.classTeacherOnly || isClassTeacher);
 }

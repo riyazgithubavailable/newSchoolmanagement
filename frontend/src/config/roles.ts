@@ -16,9 +16,6 @@ export type UserRole = (typeof ROLES)[keyof typeof ROLES];
 
 export const ALL_ROLES: UserRole[] = Object.values(ROLES);
 
-/** Roles a person can pick on the "Create account" screen (backend rule) */
-export const SELF_REGISTER_ROLES: UserRole[] = ["TEACHER", "STUDENT", "PARENT"];
-
 /** Human readable role name (header, profile, etc.) */
 export const ROLE_LABELS: Record<UserRole, string> = {
   SUPER_ADMIN: "Super Admin",

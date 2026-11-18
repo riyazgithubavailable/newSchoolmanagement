@@ -5,8 +5,8 @@
 ```
 HTTP request
   → cors, express.json
-  → /api/v1 router → module router (auth | users | schools)
-      → rate limit (login, register, password reset)
+  → /api/v1 router → module router (auth | users | schools | school | staff)
+      → rate limit (login, password reset)
       → requireAuth        verifies the JWT, blocks users who must change their password
       → requireRole(...)   e.g. PRINCIPAL, ADMIN
       → validate(schema)   Zod: trims, lower-cases emails, rejects bad input with field errors
@@ -52,6 +52,14 @@ Each feature lives in `backend/src/modules/<feature>/`:
 | `users` | `schoolId` (null for super admin), `email` (unique per school), `role`, `status` (PENDING/ACTIVE/REJECTED/DISABLED), `passwordHash`, `mustChangePassword` |
 | `refreshtokens` | `userId`, `tokenHash`, `client` (web/android), `expiresAt` (TTL) |
 | `passwordresets` | `userId`, `tokenHash`, `expiresAt` (TTL) |
+| `academicyears` | `schoolId`, `name` ("2026-27", unique per school), `startDate`, `endDate`, `isCurrent` (one per school) |
+| `classes` | `schoolId`, `name`, `order`, `stream` (11–12) — unique (`name`, `stream`) per school |
+| `sections` | `schoolId`, `classId`, `name` ("A"), `roomNo`, `classTeacherId` (unique per school: one section per teacher) |
+| `subjects` | `schoolId`, `name` (unique per school), `code` |
+| `teachingassignments` | `schoolId`, `academicYearId`, `sectionId`, `subjectId`, `teacherId` — one teacher per subject per section per year |
+
+`users.staffProfile` holds HR details for staff (`employeeId` unique per school, designation, qualification,
+gender, joining date).
 
 ## Frontend structure
 
@@ -62,10 +70,10 @@ pages / components  →  hooks (TanStack Query)  →  services  →  lib/api.ts 
 - `lib/api.ts` adds the bearer token, unwraps `{ success, data }`, throws `ApiError(code, message, details)`
   and, on `401 TOKEN_EXPIRED`, refreshes **once** (shared by parallel requests) and retries.
 - `lib/auth.ts` stores the session (localStorage with *Stay signed in*, otherwise sessionStorage).
-- `contexts/AuthContext.tsx` exposes `user`, `login`, `register`, `logout`, `changePassword`, and
+- `contexts/AuthContext.tsx` exposes `user`, `login`, `logout`, `changePassword`, and
   re-checks `/auth/me` on start-up (catches disabled accounts / suspended schools).
 - `routes/guards.tsx`: `RequireRole`, `RequireClassTeacher`, `RequireLogin`, `PublicOnly`; any user with a
   temporary password is sent to `/change-password`.
-- **Mock vs real:** auth, password and the Schools page use the real API. Teacher pages still read
+- **Mock vs real:** auth, passwords, the Schools page and the whole principal/admin section use the real API. Teacher pages still read
   `services/teacherService.ts`, which returns mock data from `mock/db.ts`; every function has a
   `TODO(API)` note naming the endpoint that will replace it.

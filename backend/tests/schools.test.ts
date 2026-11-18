@@ -111,9 +111,14 @@ describe("GET /schools", () => {
     const b = await createSchool(token, newSchool("BBB01", "p@b.com"));
 
     // a pending teacher in school B
-    await api()
-      .post("/api/v1/auth/register")
-      .send({ schoolCode: "BBB01", fullName: "T One", email: "t@b.com", password: "Teacher123", role: "TEACHER" });
+    await UserModel.create({
+      schoolId: b.body.data.id,
+      fullName: "T One",
+      email: "t@b.com",
+      role: "TEACHER",
+      status: "PENDING",
+      passwordHash: await hashPassword("Teacher123"),
+    });
     await api()
       .patch(`/api/v1/schools/${b.body.data.id}/status`)
       .set("Authorization", `Bearer ${token}`)

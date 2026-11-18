@@ -6,11 +6,11 @@ import { SCHOOL_STATUS, SchoolModel, type SchoolDoc } from "../schools/school.mo
 import { UserModel, type UserDoc } from "../users/user.model.js";
 import crypto from "node:crypto";
 import { sendMail } from "../../services/mailer.js";
+import { classTeacherOf } from "../academics/academics.service.js";
 import type {
   ChangePasswordInput,
   ForgotPasswordInput,
   LoginInput,
-  RegisterInput,
   ResetPasswordInput,
 } from "./auth.schemas.js";
 import { PasswordResetModel, RESET_TOKEN_TTL_MINUTES } from "./passwordReset.model.js";
@@ -60,6 +60,13 @@ export function toPublicUser(user: UserDoc, school: SchoolDoc | null) {
   };
 }
 
+/** Public user + (for teachers) the section they are class teacher of. */
+export async function sessionUser(user: UserDoc, school: SchoolDoc | null) {
+  const base = toPublicUser(user, school);
+  if (user.role !== ROLES.TEACHER || !user.schoolId) return { ...base, classTeacherOf: null };
+  return { ...base, classTeacherOf: await classTeacherOf(String(user.schoolId), String(user._id)) };
+}
+
 const invalidCredentials = () =>
   ApiError.unauthorized("INVALID_CREDENTIALS", "School code, email or password is incorrect.");
 
@@ -105,31 +112,6 @@ function assertCanLogin(user: UserDoc, school: SchoolDoc | null) {
 }
 
 export const authService = {
-  /** Self sign-up for Teacher / Parent / Student. Account stays PENDING until approved. */
-  async register(input: RegisterInput) {
-    const school = await SchoolModel.findOne({ code: input.schoolCode });
-    if (!school || school.status !== SCHOOL_STATUS.ACTIVE) {
-      throw ApiError.notFound("SCHOOL_NOT_FOUND", "No active school found with this school code.");
-    }
-
-    const exists = await UserModel.exists({ schoolId: school._id, email: input.email });
-    if (exists) {
-      throw ApiError.conflict("EMAIL_TAKEN", "An account with this email already exists in this school.");
-    }
-
-    const user = await UserModel.create({
-      schoolId: school._id,
-      fullName: input.fullName,
-      email: input.email,
-      phone: input.phone,
-      passwordHash: await hashPassword(input.password),
-      role: input.role,
-      status: USER_STATUS.PENDING,
-    });
-
-    return toPublicUser(user, school);
-  },
-
   async login(input: LoginInput, info: ClientInfo) {
     let school: SchoolDoc | null = null;
     if (input.schoolCode) {
@@ -161,7 +143,7 @@ export const authService = {
     user.lastLoginAt = new Date();
     await user.save();
 
-    return { user: toPublicUser(user, school), tokens: await issueTokens(user, info) };
+    return { user: await sessionUser(user, school), tokens: await issueTokens(user, info) };
   },
 
   /** Exchange a refresh token for a new pair (the old one stops working). */
@@ -181,7 +163,7 @@ export const authService = {
     const school = user.schoolId ? await SchoolModel.findById(user.schoolId) : null;
     assertCanLogin(user, school);
 
-    return { user: toPublicUser(user, school), tokens: await issueTokens(user, info) };
+    return { user: await sessionUser(user, school), tokens: await issueTokens(user, info) };
   },
 
   /** Logs out this device only. Safe to call twice. */
@@ -194,7 +176,7 @@ export const authService = {
     if (!user) throw ApiError.unauthorized("INVALID_TOKEN", "User no longer exists.");
     const school = user.schoolId ? await SchoolModel.findById(user.schoolId) : null;
     assertCanLogin(user, school);
-    return toPublicUser(user, school);
+    return sessionUser(user, school);
   },
 
   /**
@@ -218,7 +200,7 @@ export const authService = {
 
     await applyNewPassword(user, input.newPassword, { mustChange: false });
     const school = user.schoolId ? await SchoolModel.findById(user.schoolId) : null;
-    return { user: toPublicUser(user, school), tokens: await issueTokens(user, info) };
+    return { user: await sessionUser(user, school), tokens: await issueTokens(user, info) };
   },
 
   /**

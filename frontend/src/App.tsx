@@ -17,11 +17,15 @@ import NotFound from "@/pages/NotFound";
 
 /* Dashboards */
 import TeacherDashboard from "@/pages/DashboardsUser/TeacherDashboard";
-import PrincipalDashboard from "@/pages/DashboardsUser/PrincipalDashboard";
-import AdminDashboard from "@/pages/DashboardsUser/AdminDashboard";
 import SuperAdminDashboard from "@/pages/DashboardsUser/SuperAdminDashboard";
 import ParentDashboard from "@/pages/DashboardsUser/ParentDashboard";
 import StudentDashboard from "@/pages/DashboardsUser/StudentDashboard";
+
+/* Principal & office admin */
+import SchoolDashboard from "@/pages/school/SchoolDashboard";
+import SchoolSetup from "@/pages/school/SchoolSetup";
+import StaffPage from "@/pages/school/StaffPage";
+import AssignmentsPage from "@/pages/school/AssignmentsPage";
 
 /* Teacher */
 import TeacherTimetable from "@/pages/TeacherSection/TeacherTimetable";
@@ -99,12 +103,20 @@ const AppRoutes = () => (
       </Route>
     </Route>
 
-    {/* Principal */}
-    <Route element={<RequireRole roles={["PRINCIPAL"]} />}>
-      <Route element={<AppLayouts />}>
-        <Route path="/principal/dashboard" element={<PrincipalDashboard />} />
-      </Route>
-    </Route>
+    {/* Principal and office admin share the school management pages */}
+    {(["PRINCIPAL", "ADMIN"] as const).map((role) => {
+      const base = role === "PRINCIPAL" ? "/principal" : "/admin";
+      return (
+        <Route key={role} element={<RequireRole roles={[role]} />}>
+          <Route element={<AppLayouts />}>
+            <Route path={`${base}/dashboard`} element={<SchoolDashboard />} />
+            <Route path={`${base}/setup`} element={<SchoolSetup />} />
+            <Route path={`${base}/staff`} element={<StaffPage />} />
+            <Route path={`${base}/assignments`} element={<AssignmentsPage />} />
+          </Route>
+        </Route>
+      );
+    })}
 
     {/* Super admin (platform owner) */}
     <Route element={<RequireRole roles={["SUPER_ADMIN"]} />}>
@@ -113,12 +125,6 @@ const AppRoutes = () => (
       </Route>
     </Route>
 
-    {/* Admin (school office) */}
-    <Route element={<RequireRole roles={["ADMIN"]} />}>
-      <Route element={<AppLayouts />}>
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-      </Route>
-    </Route>
 
     {/* Parent */}
     <Route element={<RequireRole roles={["PARENT"]} />}>

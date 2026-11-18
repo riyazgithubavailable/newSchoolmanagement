@@ -27,12 +27,3 @@ export const forgotPasswordLimiter = rateLimit({
   message: json("TOO_MANY_REQUESTS", "Too many password reset attempts. Try again later."),
 });
 
-/** Stops sign-up spam: 5 accounts / hour per IP */
-export const registerLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  limit: 5,
-  skip,
-  standardHeaders: "draft-8",
-  legacyHeaders: false,
-  message: json("TOO_MANY_REQUESTS", "Too many sign-up attempts. Try again later."),
-});

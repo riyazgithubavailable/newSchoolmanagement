@@ -92,28 +92,12 @@ describe("login screen", () => {
   });
 });
 
-describe("create account screen", () => {
-  it("registers and shows the pending-approval confirmation", async () => {
-    fetchMock.mockImplementation(() =>
-      json(201, { success: true, data: { user: { ...apiUser, status: "PENDING" } } }),
-    );
+describe("no self sign-up", () => {
+  it("the login page has no create-account option", () => {
     window.location.hash = "#/";
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: /create an account/i }));
-
-    // Principal / Admin can't self-register
-    expect(screen.queryByRole("button", { name: /principal/i })).not.toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText(/full name/i), { target: { value: "Neha Verma" } });
-    fireEvent.change(screen.getByLabelText(/school/i), { target: { value: "DEMO01" } });
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: "neha@demo.school" } });
-    fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: "Teacher123" } });
-    fireEvent.change(screen.getByLabelText(/confirm/i), { target: { value: "Teacher123" } });
-    fireEvent.click(screen.getByRole("button", { name: /create account/i }));
-
-    expect(await screen.findByText("Account created")).toBeInTheDocument();
-    expect(screen.getByText("Demo Public School")).toBeInTheDocument();
-    expect(JSON.parse(String(calls()[0].init.body))).toMatchObject({ role: "TEACHER", email: "neha@demo.school" });
+    expect(screen.queryByRole("button", { name: /create an account/i })).not.toBeInTheDocument();
+    expect(screen.getByText(/school office or principal creates it/i)).toBeInTheDocument();
   });
 });
 

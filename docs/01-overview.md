@@ -30,6 +30,8 @@ Platform owner (SUPER_ADMIN)
 | `STUDENT` | Learner | View timetable, homework, results |
 | `PARENT` | Guardian | Follow their children, talk to teachers |
 
+Nobody signs up on their own — each account is created by the level above (see [04 — User flows](04-user-flows.md)).
+
 Class teacher is not a separate role: it's a teacher who is assigned to one section and gets extra pages
 (My Class, Student Progress, Parent Communication).
 

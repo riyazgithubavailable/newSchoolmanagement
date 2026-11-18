@@ -11,10 +11,23 @@ import {
   forgotPasswordSchema,
   loginSchema,
   refreshSchema,
-  registerSchema,
   resetPasswordSchema,
 } from "../modules/auth/auth.schemas.js";
 import { createSchoolSchema, principalInput, schoolStatusSchema } from "../modules/schools/schools.schemas.js";
+import {
+  academicYearSchema,
+  assignmentSchema,
+  bulkSubjectsSchema,
+  classTeacherSchema,
+  classTemplateSchema,
+  createClassSchema,
+  createSectionSchema,
+  schoolProfileSchema,
+  subjectSchema,
+  updateClassSchema,
+  updateSectionSchema,
+} from "../modules/academics/academics.schemas.js";
+import { createStaffSchema, updateStaffSchema } from "../modules/staff/staff.js";
 
 type Json = Record<string, unknown>;
 
@@ -72,6 +85,111 @@ const listQuery = (extra: Json[] = []) => [
   ...extra,
 ];
 
+/* ----------------------- School setup & staff paths ----------------------- */
+
+const setup = (summary: string, op: Json = {}) => ({ tags: ["School setup"], summary, security: secured, ...op });
+const staffOp = (summary: string, op: Json = {}) => ({ tags: ["Staff"], summary, security: secured, ...op });
+const data = (d: Json | null = { type: "object" }) => ({ 200: ok("OK", d), 400: validation, 403: forbidden });
+const created = (d: Json = { type: "object" }) => ({
+  201: ok("Created", d),
+  400: validation,
+  403: forbidden,
+  409: err("Duplicate", ["DUPLICATE"]),
+});
+const removable = { 200: ok("Deleted", null), 404: err("Not found", ["NOT_FOUND"]), 409: err("Still used somewhere", ["IN_USE"]) };
+const pid = [idParam("id", "Record id")];
+
+const schoolSetupPaths: Record<string, Json> = {
+  "/school/overview": { get: setup("Dashboard numbers + setup checklist", { responses: data() }) },
+  "/school/profile": {
+    get: setup("School profile", { responses: data() }),
+    patch: setup("Update school profile (principal only; code and status are not editable)", {
+      requestBody: body(schoolProfileSchema, { board: "CBSE", phone: "9876543210", address: "Bhubaneswar" }),
+      responses: data(),
+    }),
+  },
+  "/school/academic-years": {
+    get: setup("List academic years", { responses: data({ type: "array" }) }),
+    post: setup("Add an academic year (the first one becomes current)", {
+      requestBody: body(academicYearSchema, { name: "2026-27", startDate: "2026-04-01", endDate: "2027-03-31" }),
+      responses: created(),
+    }),
+  },
+  "/school/academic-years/{id}/set-current": { post: setup("Make this the current academic year", { parameters: pid, responses: data() }) },
+  "/school/academic-years/{id}": { delete: setup("Delete a non-current, unused year", { parameters: pid, responses: removable }) },
+  "/school/class-templates": { get: setup("Ready-made class lists (Nursery to 12, 1 to 10...)", { responses: data({ type: "array" }) }) },
+  "/school/classes": {
+    get: setup("Classes with sections, class teachers and subject counts", { responses: data({ type: "array" }) }),
+    post: setup("Add a class (optionally with stream and sections)", {
+      requestBody: body(createClassSchema, { name: "Class 11", order: 14, stream: "Science", sections: ["A", "B"] }),
+      responses: created(),
+    }),
+  },
+  "/school/classes/from-template": {
+    post: setup("Create the classes of a template (existing ones are skipped)", {
+      requestBody: body(classTemplateSchema, { templateId: "UPTO_12", sections: ["A"] }),
+      responses: created(),
+    }),
+  },
+  "/school/classes/{id}": {
+    patch: setup("Rename / reorder a class", { parameters: pid, requestBody: body(updateClassSchema), responses: data() }),
+    delete: setup("Delete a class and its sections (only if unused)", { parameters: pid, responses: removable }),
+  },
+  "/school/sections": {
+    post: setup("Add a section to a class", { requestBody: body(createSectionSchema), responses: created() }),
+  },
+  "/school/sections/{id}": {
+    patch: setup("Rename a section / set room", { parameters: pid, requestBody: body(updateSectionSchema), responses: data() }),
+    delete: setup("Delete an unused section", { parameters: pid, responses: removable }),
+  },
+  "/school/sections/{id}/class-teacher": {
+    put: setup("Set (or remove with null) the class teacher", {
+      parameters: pid,
+      requestBody: body(classTeacherSchema),
+      responses: { ...data(), 409: err("Teacher already has a section", ["ALREADY_CLASS_TEACHER"]) },
+    }),
+  },
+  "/school/subject-suggestions": { get: setup("Common subject names", { responses: data({ type: "array" }) }) },
+  "/school/subjects": {
+    get: setup("List subjects", { responses: data({ type: "array" }) }),
+    post: setup("Add a subject", { requestBody: body(subjectSchema, { name: "Mathematics", code: "MATH" }), responses: created() }),
+  },
+  "/school/subjects/bulk": {
+    post: setup("Add several subjects (duplicates skipped)", {
+      requestBody: body(bulkSubjectsSchema, { names: ["English", "Hindi", "Mathematics"] }),
+      responses: created(),
+    }),
+  },
+  "/school/subjects/{id}": {
+    patch: setup("Rename a subject", { parameters: pid, requestBody: body(subjectSchema), responses: data() }),
+    delete: setup("Delete an unused subject", { parameters: pid, responses: removable }),
+  },
+  "/school/assignments": {
+    get: setup("Subject teachers in the current year (?sectionId=&teacherId=)", { responses: data({ type: "array" }) }),
+    put: setup("Assign / replace the teacher of a subject in a section", {
+      requestBody: body(assignmentSchema),
+      responses: { ...data(), 400: err("No current academic year / inactive teacher", ["NO_ACADEMIC_YEAR", "TEACHER_NOT_ACTIVE"]) },
+    }),
+  },
+  "/school/assignments/{id}": { delete: setup("Remove a subject teacher", { parameters: pid, responses: removable }) },
+  "/staff": {
+    get: staffOp("Staff of your school (?role=&status=&search=)", { responses: data({ type: "array" }) }),
+    post: staffOp("Create a teacher or (principal only) an office admin with a temporary password", {
+      requestBody: body(createStaffSchema, {
+        fullName: "Neha Verma",
+        email: "neha@school.edu",
+        role: "TEACHER",
+        password: "Temp12345",
+        profile: { employeeId: "EMP-01", designation: "TGT", joiningDate: "2024-06-01" },
+      }),
+      responses: { ...created(), 409: err("Duplicate", ["EMAIL_TAKEN", "EMPLOYEE_ID_TAKEN"]) },
+    }),
+  },
+  "/staff/{id}": {
+    patch: staffOp("Edit name, phone and HR details", { parameters: pid, requestBody: body(updateStaffSchema), responses: data() }),
+  },
+};
+
 export const openApiDocument = {
   openapi: "3.1.0",
   info: {
@@ -97,6 +215,8 @@ export const openApiDocument = {
     { name: "Auth", description: "Sign in, tokens and passwords" },
     { name: "Users", description: "Accounts inside a school — Principal / Admin only" },
     { name: "Schools", description: "Platform owner (SUPER_ADMIN) only" },
+    { name: "School setup", description: "Principal / Admin: profile, academic years, classes, sections, subjects, assignments" },
+    { name: "Staff", description: "Principal / Admin: teacher and office-admin accounts" },
   ],
   components: {
     securitySchemes: { bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" } },
@@ -137,6 +257,18 @@ export const openApiDocument = {
           },
           lastLoginAt: { type: ["string", "null"], format: "date-time" },
           mustChangePassword: { type: "boolean" },
+          classTeacherOf: {
+            description: "Teachers only: the section they are class teacher of",
+            oneOf: [
+              { type: "null" },
+              {
+                type: "object",
+                properties: Object.fromEntries(
+                  ["sectionId", "classId", "className", "stream", "section", "label"].map((k) => [k, { type: ["string", "null"] }]),
+                ),
+              },
+            ],
+          },
         },
       },
       Tokens: {
@@ -204,26 +336,6 @@ export const openApiDocument = {
     },
 
     /* ------------------------------- Auth ------------------------------ */
-    "/auth/register": {
-      post: {
-        tags: ["Auth"],
-        summary: "Self sign-up (Teacher / Parent / Student) — account stays PENDING until approved",
-        requestBody: body(registerSchema, {
-          schoolCode: "DEMO01",
-          fullName: "Neha Verma",
-          email: "neha@demo.school",
-          password: "Teacher123",
-          role: "TEACHER",
-        }),
-        responses: {
-          201: ok("Created", { type: "object", properties: { user: ref("User") } }),
-          400: validation,
-          404: err("Unknown school code", ["SCHOOL_NOT_FOUND"]),
-          409: err("Email already used in this school", ["EMAIL_TAKEN"]),
-          429: err("Too many sign-ups", ["TOO_MANY_REQUESTS"]),
-        },
-      },
-    },
     "/auth/login": {
       post: {
         tags: ["Auth"],
@@ -412,5 +524,6 @@ export const openApiDocument = {
         responses: { 200: ok("Done", null), 404: err("Not found", ["SCHOOL_NOT_FOUND", "USER_NOT_FOUND"]) },
       },
     },
+    ...schoolSetupPaths,
   },
 };

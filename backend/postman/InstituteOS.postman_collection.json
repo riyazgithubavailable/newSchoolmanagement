@@ -42,6 +42,18 @@
     {
       "key": "principalId",
       "value": ""
+    },
+    {
+      "key": "sectionId",
+      "value": ""
+    },
+    {
+      "key": "subjectId",
+      "value": ""
+    },
+    {
+      "key": "teacherId",
+      "value": ""
     }
   ],
   "item": [
@@ -72,52 +84,6 @@
     {
       "name": "Auth",
       "item": [
-        {
-          "name": "Register (Teacher / Parent / Student)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const j = pm.response.json();",
-                  "if (j.success) pm.collectionVariables.set(\"userId\", j.data.user.id);"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "X-Client",
-                "value": "postman"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"schoolCode\": \"DEMO01\",\n  \"fullName\": \"Neha Verma\",\n  \"email\": \"neha@demo.school\",\n  \"phone\": \"9876543210\",\n  \"password\": \"Teacher123\",\n  \"role\": \"TEACHER\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/register",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "register"
-              ]
-            },
-            "description": "Creates a PENDING account. A principal/admin must approve it before login."
-          }
-        },
         {
           "name": "Login (Principal)",
           "event": [
@@ -882,6 +848,513 @@
                 "principals",
                 "{{principalId}}",
                 "reset-password"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "School setup (Principal / Admin)",
+      "description": "Run \"Auth → Login (Principal)\" first.",
+      "item": [
+        {
+          "name": "Overview (dashboard + checklist)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school/overview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "overview"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get school profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update school profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"board\": \"CBSE\",\n  \"phone\": \"9876543210\",\n  \"address\": \"Bhubaneswar, Odisha\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/school/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "profile"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add academic year",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"2026-27\",\n  \"startDate\": \"2026-04-01\",\n  \"endDate\": \"2027-03-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/school/academic-years",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "academic-years"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List academic years",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school/academic-years",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "academic-years"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Class templates",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school/class-templates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "class-templates"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add classes from template",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"templateId\": \"UPTO_12\",\n  \"sections\": [\n    \"A\",\n    \"B\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/school/classes/from-template",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "classes",
+                "from-template"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add custom class (stream)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Class 11\",\n  \"order\": 14,\n  \"stream\": \"Science\",\n  \"sections\": [\n    \"A\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/school/classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "classes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List classes & sections",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.success) pm.collectionVariables.set(\"sectionId\", j.data.find(c => c.sections.length).sections[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school/classes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "classes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add subjects (bulk)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"names\": [\n    \"English\",\n    \"Hindi\",\n    \"Mathematics\",\n    \"Science\",\n    \"Social Science\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/school/subjects/bulk",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "subjects",
+                "bulk"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List subjects",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.success) pm.collectionVariables.set(\"subjectId\", j.data[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school/subjects",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "subjects"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Set class teacher",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teacherId\": \"{{teacherId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/school/sections/{{sectionId}}/class-teacher",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "sections",
+                "{{sectionId}}",
+                "class-teacher"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Assign subject teacher",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sectionId\": \"{{sectionId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"teacherId\": \"{{teacherId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/school/assignments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "assignments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List subject teachers of a section",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school/assignments?sectionId={{sectionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school",
+                "assignments"
+              ],
+              "query": [
+                {
+                  "key": "sectionId",
+                  "value": "{{sectionId}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Staff (Principal / Admin)",
+      "item": [
+        {
+          "name": "Add teacher",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.success) pm.collectionVariables.set(\"teacherId\", j.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Ravi Kumar\",\n  \"email\": \"ravi@demo.school\",\n  \"phone\": \"9876500001\",\n  \"role\": \"TEACHER\",\n  \"password\": \"Temp12345\",\n  \"profile\": {\n    \"employeeId\": \"EMP-101\",\n    \"designation\": \"TGT\",\n    \"joiningDate\": \"2024-06-01\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/staff",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "staff"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List staff",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/staff?role=TEACHER",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "staff"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "TEACHER"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Edit staff",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"profile\": {\n    \"designation\": \"PGT\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/staff/{{teacherId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "staff",
+                "{{teacherId}}"
               ]
             }
           }

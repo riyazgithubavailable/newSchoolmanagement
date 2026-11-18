@@ -14,8 +14,6 @@ export const ROLES = {
 export type Role = (typeof ROLES)[keyof typeof ROLES];
 export const ALL_ROLES = Object.values(ROLES) as Role[];
 
-/** Roles a person may pick when creating their own account (needs approval) */
-export const SELF_REGISTER_ROLES = [ROLES.TEACHER, ROLES.PARENT, ROLES.STUDENT] as const;
 
 /** Roles that can approve / manage accounts inside a school */
 export const SCHOOL_MANAGER_ROLES: Role[] = [ROLES.PRINCIPAL, ROLES.ADMIN];

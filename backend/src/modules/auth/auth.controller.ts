@@ -4,7 +4,6 @@ import type {
   ChangePasswordInput,
   ForgotPasswordInput,
   LoginInput,
-  RegisterInput,
   ResetPasswordInput,
 } from "./auth.schemas.js";
 import { authService, type ClientInfo } from "./auth.service.js";
@@ -16,14 +15,6 @@ const clientInfo = (req: Request): ClientInfo => ({
 });
 
 export const authController = {
-  async register(req: Request, res: Response) {
-    const user = await authService.register(req.body as RegisterInput);
-    sendSuccess(res, { user }, {
-      status: 201,
-      message: "Account created. You can log in once the school approves your account.",
-    });
-  },
-
   async login(req: Request, res: Response) {
     const result = await authService.login(req.body as LoginInput, clientInfo(req));
     sendSuccess(res, result, { message: "Login successful." });
