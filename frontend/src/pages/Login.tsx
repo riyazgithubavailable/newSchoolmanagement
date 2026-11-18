@@ -1,221 +1,11 @@
-// import React, { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-
-// import {
-//     Card,
-//     CardContent,
-//     CardHeader,
-//     CardTitle,
-//     CardDescription,
-// } from "@/components/ui/card";
-// import { Input } from "@/components/ui/input";
-// import { Button } from "@/components/ui/button";
-// import { Label } from "@/components/ui/label";
-
-// import { Shield, Loader2, Eye, EyeOff } from "lucide-react";
-// import { useToast } from "@/hooks/use-toast";
-
-// import { loginPlantEmployee } from "@/hooks/usePlantEmployeeAuth.ts";
-// import { useAuth } from "@/contexts/AuthContext";
-
-// export default function Login(): JSX.Element {
-//     const [username, setUsername] = useState<string>("");
-//     const [password, setPassword] = useState<string>("");
-//     const [showPassword, setShowPassword] = useState<boolean>(false);
-//     const [loading, setLoading] = useState<boolean>(false);
-
-//     const { setSession } = useAuth();
-//     const navigate = useNavigate();
-//     const { toast } = useToast();
-
-//     // Remove dark mode on login page for better aesthetics
-//     useEffect(() => {
-//         const isDark = document.documentElement.classList.contains("dark");
-//         document.documentElement.classList.remove("dark");
-//         return () => {
-//             if (isDark) document.documentElement.classList.add("dark");
-//         };
-//     }, []);
-
-//     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-//         e.preventDefault();
-//         setLoading(true);
-
-//         try {
-//             const res = await loginPlantEmployee({ Username: username, Password: password });
-
-//             setSession(res.data?.token, res.data);
-
-//             toast({
-//                 title: "Login Successful",
-//                 description: `Welcome, ${res.data?.fullName} (${res.data?.roleName}).`,
-//             });
-
-//             const role = res.data?.roleName;
-//             setTimeout(() => {
-//                 if (role === "Plant Admin") navigate("/dashboard");
-//                 else if (role === "Gate Operator") navigate("/gateOperator-dashboard");
-//                 else if (role === "Primary-Segregation Supervisor") navigate("/primary-segregation-dashboard");
-//                 else if (role === "WeighBridge Operator") navigate("/weight-bridge-operator-dashboard"); 
-//                 else if (role === "Secondary-Segregation Supervisor") navigate("/secondary-segregation-dashboard");
-//                 else if (role === "Processing Supervisor") navigate("/waste-processing-dashboard");
-//                 else if (role === "Stock Manager") navigate("/waste-stock-dashboard");
-//                 else if (role === "Sales Manager") navigate("/sales-dashboard");
-//                 else navigate("/dashboard");
-//             }, 300);
-//         } catch (err: any) {
-//             toast({
-//                 title: "Authentication Failed",
-//                 description: err?.message || "Invalid credentials. Please verify your details.",
-//                 variant: "destructive",
-//             });
-//         } finally {
-//             setLoading(false);
-//         }
-//     };
-
-//     return (
-//         <div className="relative min-h-screen overflow-hidden">
-//             {/* Background image */}
-//             <div className="absolute inset-0 bg-[url('/Login-Image.jpg')] bg-cover bg-center" />
-
-//             {/* Dark overlay */}
-//             <div className="absolute inset-0 bg-black/20" />
-
-//             {/* Content */}
-//             <div className="relative z-10 min-h-screen">
-//                 <div className="mx-auto flex min-h-screen w-full max-w-6xl items-center px-4">
-//                     <div className="w-full md:w-[460px]">
-
-//                         {/* Logo + Title */}
-//                         <div className="mb-6 flex items-center gap-3">
-//                             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-800">
-//                                 <Shield className="h-6 w-6 text-white" />
-//                             </div>
-//                             <div>
-//                                 <h1 className="text-2xl font-bold text-black leading-tight">Waste Processing</h1>
-//                                 <p className="text-sm text-black">Monitoring Portal</p>
-//                             </div>
-//                         </div>
-
-//                         {/* Main Login Card */}
-//                         <Card className="shadow-4xl border border-gray-200 bg-white">
-//                             <CardHeader className="pb-3">
-//                                 <CardTitle className="text-xl">Sign In</CardTitle>
-//                                 <CardDescription>Access the plant operations dashboard</CardDescription>
-//                             </CardHeader>
-
-//                             <CardContent>
-//                                 <form onSubmit={handleSubmit} className="space-y-4">
-//                                     {/* Username */}
-//                                     <div className="space-y-2">
-//                                         <Label htmlFor="username">Username</Label>
-//                                         <Input
-//                                             id="username"
-//                                             type="text"
-//                                             placeholder="Enter username"
-//                                             value={username}
-//                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-//                                                 setUsername(e.target.value)
-//                                             }
-//                                             required
-//                                         />
-//                                     </div>
-
-//                                     {/* Password */}
-//                                     <div className="space-y-2">
-//                                         <Label htmlFor="password">Password</Label>
-//                                         <div className="relative">
-//                                             <Input
-//                                                 id="password"
-//                                                 type={showPassword ? "text" : "password"}
-//                                                 placeholder="••••••••"
-//                                                 value={password}
-//                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-//                                                     setPassword(e.target.value)
-//                                                 }
-//                                                 className="pr-10"
-//                                                 required
-//                                             />
-//                                             <button
-//                                                 type="button"
-//                                                 onClick={() => setShowPassword((prev) => !prev)}
-//                                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-green-800"
-//                                                 aria-label={showPassword ? "Hide Password" : "Show Password"}
-//                                             >
-//                                                 {showPassword ? (
-//                                                     <EyeOff className="h-4 w-4" />
-//                                                 ) : (
-//                                                     <Eye className="h-4 w-4" />
-//                                                 )}
-//                                             </button>
-//                                         </div>
-//                                     </div>
-
-//                                     {/* Forgot Password */}
-//                                     <div className="flex items-center justify-between pt-1">
-//                                         <button
-//                                             type="button"
-//                                             className="text-sm font-medium text-green-800 hover:underline"
-//                                             onClick={() =>
-//                                                 toast({
-//                                                     title: "Forgot Password",
-//                                                     description:
-//                                                         "Please contact your system administrator to reset credentials.",
-//                                                 })
-//                                             }
-//                                         >
-//                                             Forgot password?
-//                                         </button>
-//                                     </div>
-
-//                                     {/* Login Button */}
-//                                     <Button
-//                                         type="submit"
-//                                         className="w-full bg-green-800 hover:bg-green-900 flex items-center justify-center gap-2"
-//                                         disabled={loading}
-//                                     >
-//                                         {loading ? (
-//                                             <>
-//                                                 <Loader2 className="h-4 w-4 animate-spin" />
-//                                                 Authenticating…
-//                                             </>
-//                                         ) : (
-//                                             "Login"
-//                                         )}
-//                                     </Button>
-
-//                                     {/* Divider */}
-//                                     {/* <div className="relative flex items-center gap-3 my-1">
-//                                         <div className="flex-1 h-px bg-gray-200" />
-//                                         <span className="text-xs text-gray-400">or</span>
-//                                         <div className="flex-1 h-px bg-gray-200" />
-//                                     </div> */}
-
-//                                     {/* Admin Login Button */}
-//                                     {/* <Button
-//                                         type="button"
-//                                         variant="outline"
-//                                         className="w-50 border-green-800 text-green-800 hover:bg-green-800  flex items-center justify-center gap-2"
-//                                         onClick={() => navigate("/admin-login")}
-//                                     >
-//                                         <Shield className="h-4 w-4" />
-//                                         Admin Login
-//                                     </Button> */}
-//                                 </form>
-//                             </CardContent>
-//                         </Card>
-//                     </div>
-
-//                     {/* Right side open for background */}
-//                     <div className="hidden flex-1 md:block" />
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// }
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { getHomeRoute, ROLE_PATH, SELF_REGISTER_ROLES, type UserRole } from "@/config/roles";
+import { ApiError } from "@/lib/api";
 import {
+    BookOpenCheck,
+    Building2,
     ArrowLeft,
     ArrowRight,
     CheckCircle2,
@@ -232,16 +22,36 @@ import {
 // ---------------------------------------------------------------------------
 // Role tabs shared between Login and Signup
 // ---------------------------------------------------------------------------
-const ROLES = [
-    { id: "teacher", label: "Teacher", icon: GraduationCap },
-    { id: "parent", label: "Parent", icon: Users },
-    { id: "admin", label: "Principal / Admin", icon: ShieldCheck },
+// ids match UserRole in config/roles.ts
+const ROLES: { id: UserRole; label: string; icon: typeof GraduationCap }[] = [
+    { id: "TEACHER", label: "Teacher", icon: GraduationCap },
+    { id: "STUDENT", label: "Student", icon: BookOpenCheck },
+    { id: "PARENT", label: "Parent", icon: Users },
+    { id: "PRINCIPAL", label: "Principal", icon: ShieldCheck },
+    { id: "ADMIN", label: "Admin", icon: Building2 },
 ];
 
-function RoleTabs({ value, onChange }) {
+// Accounts created by `npm run seed` in the backend (development only).
+// TODO: remove before going live.
+const DEMO_SCHOOL_CODE = "DEMO01";
+const DEMO_ACCOUNTS: Partial<Record<UserRole, { email: string; password: string }>> = {
+    PRINCIPAL: { email: "principal@demo.school", password: "Principal@123" },
+    ADMIN: { email: "admin@demo.school", password: "Admin@123" },
+    TEACHER: { email: "teacher@demo.school", password: "Teacher@123" },
+};
+const PLATFORM_DEMO = { email: "superadmin@instituteos.local", password: "SuperAdmin@123" };
+
+/** Turns an API error into a friendly message (backend messages are already user-facing). */
+const errorText = (err: unknown) => (err instanceof Error ? err.message : "Something went wrong. Please try again.");
+
+function RoleTabs({ value, onChange, allowed = null }: { value: UserRole; onChange: (r: UserRole) => void; allowed?: UserRole[] | null }) {
+    const tabs = allowed ? ROLES.filter((r) => allowed.includes(r.id as UserRole)) : ROLES;
     return (
-        <div className="grid grid-cols-3 gap-1.5 rounded-[10px] bg-[#F4F2EC] border border-[#E8E4D9] p-1">
-            {ROLES.map((role) => {
+        <div
+            className="grid gap-1 rounded-[10px] bg-[#F4F2EC] border border-[#E8E4D9] p-1"
+            style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+        >
+            {tabs.map((role) => {
                 const Icon = role.icon;
                 const active = value === role.id;
                 return (
@@ -346,25 +156,57 @@ const inputClass =
 // Login page
 // ---------------------------------------------------------------------------
 function LoginPage({ onSignUpClick }) {
-    const [role, setRole] = useState("teacher");
+    const [role, setRole] = useState<UserRole>("TEACHER");
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [form, setForm] = useState({ schoolCode: "", email: "", password: "" });
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
+    const { login } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    // platform owner (SUPER_ADMIN) signs in without a school code or role
+    const [platform, setPlatform] = useState(false);
+
+    const demo = platform ? PLATFORM_DEMO : DEMO_ACCOUNTS[role];
+    const fillDemo = () => {
+        if (!demo) return;
+        setForm({ schoolCode: platform ? "" : DEMO_SCHOOL_CODE, email: demo.email, password: demo.password });
+        setError("");
+    };
+
+    const switchMode = () => {
+        setPlatform((p) => !p);
+        setForm({ schoolCode: "", email: "", password: "" });
+        setError("");
+    };
 
     const handleChange = (field) => (e) =>
         setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!form.schoolCode || !form.email || !form.password) return;
+        if ((!platform && !form.schoolCode) || !form.email || !form.password) return;
 
         setIsLoading(true);
+        setError("");
         try {
-            // TODO: connect your login API here, including `role`
-            console.log("Sign in submitted:", { ...form, role, rememberMe });
-        } catch (error) {
-            console.error("Login failed:", error);
+            const user = await login(
+                platform
+                    ? { email: form.email.trim(), password: form.password }
+                    : { schoolCode: form.schoolCode.trim(), email: form.email.trim(), password: form.password, role },
+                rememberMe,
+            );
+            // go back to the page the user originally asked for (same role only)
+            const from = location.state?.from;
+            const target =
+                typeof from === "string" && from.startsWith(`/${ROLE_PATH[user.role]}/`)
+                    ? from
+                    : getHomeRoute(user.role);
+            navigate(target, { replace: true });
+        } catch (err) {
+            setError(errorText(err));
         } finally {
             setIsLoading(false);
         }
@@ -397,41 +239,72 @@ function LoginPage({ onSignUpClick }) {
 
                     <div>
                         <h2 className="font-serif text-[1.6rem] text-[#0F1B33] leading-tight">
-                            Welcome back
+                            {platform ? "Platform sign in" : "Welcome back"}
                         </h2>
                         <p className="text-[13px] text-[#6B7280] mt-1">
-                            Your school, all in one place.
+                            {platform ? "For the InstituteOS owner — manage all schools." : "Your school, all in one place."}
                         </p>
                     </div>
 
                     {/* Role tabs */}
-                    <div className="mt-5">
-                        <p className="text-[12px] font-medium text-[#374151] mb-1.5">
-                            Signing in as
+                    {!platform && (
+                        <div className="mt-5">
+                            <p className="text-[12px] font-medium text-[#374151] mb-1.5">
+                                Signing in as
+                            </p>
+                            <RoleTabs value={role} onChange={setRole} />
+                        </div>
+                    )}
+
+                    {import.meta.env.DEV && demo && (
+                        <div className="mt-3 flex items-center justify-between gap-2 rounded-[8px] border border-dashed border-[#C6952F]/50 bg-[#C6952F]/5 px-3 py-2">
+                            <p className="text-[11.5px] text-[#6B7280]">
+                                Dev demo —{" "}
+                                {!platform && (
+                                    <>
+                                        school <span className="font-semibold text-[#0F1B33]">{DEMO_SCHOOL_CODE}</span>,{" "}
+                                    </>
+                                )}
+                                {demo.email}
+                            </p>
+                            <button
+                                type="button"
+                                onClick={fillDemo}
+                                className="shrink-0 text-[11.5px] font-semibold text-[#0F1B33] hover:text-[#C6952F]"
+                            >
+                                Fill demo
+                            </button>
+                        </div>
+                    )}
+
+                    {error && (
+                        <p role="alert" className="mt-3 rounded-[8px] border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-700">
+                            {error}
                         </p>
-                        <RoleTabs value={role} onChange={setRole} />
-                    </div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
-                        <div>
-                            <label
-                                htmlFor="schoolCode"
-                                className="block text-[12px] font-medium text-[#374151] mb-1.5"
-                            >
-                                School ID / Code
-                            </label>
-                            <input
-                                id="schoolCode"
-                                name="schoolCode"
-                                type="text"
-                                autoComplete="organization"
-                                placeholder="e.g. DPS-NGP"
-                                value={form.schoolCode}
-                                onChange={handleChange("schoolCode")}
-                                required
-                                className={inputClass}
-                            />
-                        </div>
+                        {!platform && (
+                            <div>
+                                <label
+                                    htmlFor="schoolCode"
+                                    className="block text-[12px] font-medium text-[#374151] mb-1.5"
+                                >
+                                    School ID / Code
+                                </label>
+                                <input
+                                    id="schoolCode"
+                                    name="schoolCode"
+                                    type="text"
+                                    autoComplete="organization"
+                                    placeholder="e.g. DPS01"
+                                    value={form.schoolCode}
+                                    onChange={handleChange("schoolCode")}
+                                    required
+                                    className={inputClass}
+                                />
+                            </div>
+                        )}
 
                         <div>
                             <label
@@ -530,14 +403,22 @@ function LoginPage({ onSignUpClick }) {
                     </form>
 
                     {/* Sign up prompt */}
-                    <p className="mt-5 text-center text-[12.5px] text-[#6B7280]">
-                        New to InstituteOS?{" "}
-                        <button
-                            type="button"
-                            onClick={onSignUpClick}
-                            className="font-medium text-[#0F1B33] hover:text-[#C6952F] transition-colors"
-                        >
-                            Create an account
+                    {!platform && (
+                        <p className="mt-5 text-center text-[12.5px] text-[#6B7280]">
+                            New to InstituteOS?{" "}
+                            <button
+                                type="button"
+                                onClick={onSignUpClick}
+                                className="font-medium text-[#0F1B33] hover:text-[#C6952F] transition-colors"
+                            >
+                                Create an account
+                            </button>
+                        </p>
+                    )}
+
+                    <p className="mt-3 text-center text-[12px] text-[#9CA3AF]">
+                        <button type="button" onClick={switchMode} className="hover:text-[#0F1B33] transition-colors">
+                            {platform ? "← Back to school sign in" : "Platform owner? Sign in here"}
                         </button>
                     </p>
 
@@ -567,7 +448,7 @@ function LoginPage({ onSignUpClick }) {
 // Sign up page
 // ---------------------------------------------------------------------------
 function SignUpPage({ onBackClick }) {
-    const [role, setRole] = useState("teacher");
+    const [role, setRole] = useState<UserRole>("TEACHER");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [form, setForm] = useState({
@@ -579,6 +460,8 @@ function SignUpPage({ onBackClick }) {
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [created, setCreated] = useState<{ name: string; school: string } | null>(null);
+    const { register } = useAuth();
 
     const handleChange = (field) => (e) =>
         setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -597,6 +480,12 @@ function SignUpPage({ onBackClick }) {
             return;
         }
 
+        // same rule as the backend, checked here for instant feedback
+        if (form.password.length < 8 || !/[A-Za-z]/.test(form.password) || !/\d/.test(form.password)) {
+            setError("Password must be at least 8 characters and contain a letter and a number.");
+            return;
+        }
+
         if (form.password !== form.confirmPassword) {
             setError("Passwords don't match. Please re-enter.");
             return;
@@ -604,14 +493,44 @@ function SignUpPage({ onBackClick }) {
 
         setIsLoading(true);
         try {
-            // TODO: connect your signup API here, including `role`
-            console.log("Sign up submitted:", { ...form, role });
+            const user = await register({
+                schoolCode: form.schoolCode.trim(),
+                fullName: form.fullName.trim(),
+                email: form.email.trim(),
+                password: form.password,
+                role,
+            });
+            setCreated({ name: user.fullName, school: user.schoolName || user.schoolCode });
         } catch (err) {
-            console.error("Signup failed:", err);
+            setError(errorText(err));
         } finally {
             setIsLoading(false);
         }
     };
+
+    if (created) {
+        return (
+            <div className="min-h-screen w-full flex items-center justify-center bg-[#FBF9F3] px-6 font-[Inter,system-ui,sans-serif]">
+                <div className="w-full max-w-[400px] rounded-2xl border border-[#E8E4D9] bg-white p-8 text-center shadow-sm">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-50">
+                        <CheckCircle2 className="h-7 w-7 text-green-600" />
+                    </div>
+                    <h2 className="mt-4 font-serif text-[1.5rem] text-[#0F1B33]">Account created</h2>
+                    <p className="mt-2 text-[13.5px] leading-relaxed text-[#6B7280]">
+                        Thanks, {created.name}. Your request has been sent to <b className="text-[#0F1B33]">{created.school}</b>.
+                        You can sign in once the school office or principal approves your account.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={onBackClick}
+                        className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-[8px] bg-[#0F1B33] py-2.5 text-[13.5px] font-medium text-white hover:bg-[#1c3154]"
+                    >
+                        Back to sign in
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen w-full overflow-hidden flex bg-[#FBF9F3] font-[Inter,system-ui,sans-serif]">
@@ -662,7 +581,7 @@ function SignUpPage({ onBackClick }) {
                         <p className="text-[12px] font-medium text-[#374151] mb-1.5">
                             I am a
                         </p>
-                        <RoleTabs value={role} onChange={setRole} />
+                        <RoleTabs value={role} onChange={setRole} allowed={SELF_REGISTER_ROLES} />
                     </div>
 
                     <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
@@ -750,7 +669,7 @@ function SignUpPage({ onBackClick }) {
                                         name="password"
                                         type={showPassword ? "text" : "password"}
                                         autoComplete="new-password"
-                                        placeholder="Min. 8 characters"
+                                        placeholder="8+ chars, letter & number"
                                         value={form.password}
                                         onChange={handleChange("password")}
                                         required

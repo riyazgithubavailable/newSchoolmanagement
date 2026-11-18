@@ -15,7 +15,6 @@ import {
   CalendarDays,
 } from "lucide-react";
 
-import { AppLayouts } from "@/layout/AppLayouts";
 import AdvancedTable, { ColumnType } from "@/utils/AdvancedTable"
 
 interface Student {
@@ -384,7 +383,7 @@ export default function TeacherStudents() {
   ];
 
   return (
-    <AppLayouts>
+    <>
       <div className="min-h-screen bg-[#FBF9F3] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-[1600px] space-y-6">
 
@@ -715,6 +714,6 @@ export default function TeacherStudents() {
           </div>
         </div>
       )}
-    </AppLayouts>
+    </>
   );
 }

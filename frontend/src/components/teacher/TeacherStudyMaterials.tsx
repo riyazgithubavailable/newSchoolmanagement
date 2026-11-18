@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 
 import Swal from "sweetalert2";
-import { AppLayouts } from "@/layout/AppLayouts";
 import AdvancedTable, { ColumnType } from "@/utils/AdvancedTable";
 
 type MaterialType = "PDF" | "DOC" | "PPT" | "IMAGE";
@@ -503,42 +502,52 @@ export default function TeacherStudyMaterials() {
   };
 
   const columns: ColumnType<StudyMaterial>[] = [
-    {
-      key: "title",
-      header: "Material",
-      defaultVisible: true,
-      cell: (row) => (
-        <div className="flex items-center gap-3 min-w-[200px]">
-          <div className="w-10 h-10 rounded-xl bg-[#F5F3ED] flex items-center justify-center shrink-0">
-            {getFileIcon(row.fileType)}
-          </div>
+   {
+  key: "title",
+  header: "Material",
+  defaultVisible: true,
+  defaultWidth: 280,
+  minWidth: 220,
+  cell: (row) => (
+    <div className="flex min-w-0 items-center gap-3">
+      <div className="w-10 h-10 shrink-0 rounded-xl bg-[#F5F3ED] flex items-center justify-center">
+        {getFileIcon(row.fileType)}
+      </div>
 
-          <div>
-            <p className="font-semibold text-[#0F1B33]">
-              {row.title}
-            </p>
-            <p className="text-xs text-gray-500">
-              {row.fileName}
-            </p>
-          </div>
-        </div>
-      ),
-      sortValue: (row) => row.title,
-      exportValue: (row) => row.title,
-    },
-    {
-      key: "className",
-      header: "Class / Section",
-      defaultVisible: true,
-      cell: (row) => (
-        <span className="text-sm font-medium text-gray-700">
-          {row.className} - {row.section}
-        </span>
-      ),
-      sortValue: (row) => row.className,
-      exportValue: (row) =>
-        `${row.className} - ${row.section}`,
-    },
+      <div className="min-w-0 flex-1">
+        <p
+          className="truncate font-semibold text-[#0F1B33]"
+          title={row.title}
+        >
+          {row.title}
+        </p>
+
+        <p
+          className="truncate text-xs text-gray-500"
+          title={row.fileName}
+        >
+          {row.fileName}
+        </p>
+      </div>
+    </div>
+  ),
+  sortValue: (row) => row.title,
+  exportValue: (row) => row.title,
+},
+ {
+  key: "className",
+  header: "Class / Section",
+  defaultVisible: true,
+  defaultWidth: 160,
+  minWidth: 140,
+  cell: (row) => (
+    <span className="whitespace-nowrap text-sm font-medium text-gray-700">
+      {row.className} - {row.section}
+    </span>
+  ),
+  sortValue: (row) => row.className,
+  exportValue: (row) => `${row.className} - ${row.section}`,
+},
     {
       key: "subject",
       header: "Subject",
@@ -649,7 +658,7 @@ export default function TeacherStudyMaterials() {
   ];
 
   return (
-    <AppLayouts>
+    <>
       <div className="min-h-screen bg-[#FBF9F3] p-4 md:p-6 lg:p-8">
         {/* Page Header */}
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1091,7 +1100,7 @@ export default function TeacherStudyMaterials() {
           </div>
         )}
       </div>
-    </AppLayouts>
+    </>
   );
 }
 

@@ -15,7 +15,6 @@ import {
   X,
 } from "lucide-react";
 
-import { AppLayouts } from "@/layout/AppLayouts";
 import AdvancedTable, { ColumnType } from "@/utils/AdvancedTable";
 
 
@@ -358,7 +357,7 @@ export default function TeacherExamSchedule() {
   );
 
   return (
-    <AppLayouts>
+    <>
       <div className="min-h-screen bg-[#FBF9F3] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-[1600px]">
 
@@ -660,7 +659,7 @@ export default function TeacherExamSchedule() {
           </div>
         </div>
       )}
-    </AppLayouts>
+    </>
   );
 }
 

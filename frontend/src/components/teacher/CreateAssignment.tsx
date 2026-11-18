@@ -14,7 +14,6 @@ import {
   Save,
   Send,
 } from "lucide-react";
-import { AppLayouts } from "@/layout/AppLayouts";
 
 const getTodayDate = () => {
   const today = new Date();
@@ -114,7 +113,7 @@ export default function CreateAssignment() {
   };
 
   return (
-    <AppLayouts>
+    <>
       <div className="min-h-screen bg-[#FBF9F3] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-[1100px]">
 
@@ -436,7 +435,7 @@ export default function CreateAssignment() {
           </form>
         </div>
       </div>
-    </AppLayouts>
+    </>
   );
 }
 

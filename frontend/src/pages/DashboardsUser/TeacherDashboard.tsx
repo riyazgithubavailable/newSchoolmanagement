@@ -1,9 +1,7 @@
-import AppLayout from "@/components/AppLayout"
 import DonutChart from "@/components/dashboardComponents/DonutChart";
 import { SectionHeader } from "@/components/dashboardComponents/SectionHeader";
 import StatCard from "@/components/dashboardComponents/StatCard";
 import { StatusBadge } from "@/components/dashboardComponents/StatusBage";
-import { AppLayouts } from "@/layout/AppLayouts";
 import { Announcement, Homework, Stat, Task, TeacherClass, TimetableItem } from "@/types/dashboard";
 import {
   ArrowRight,
@@ -23,7 +21,13 @@ import {
   TrendingUp,
   BookMarked,
   Circle,
+  School,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { classLabel } from "@/services/teacherService";
+
+const greetingFor = (hour: number) => (hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening");
 const stats: Stat[] = [
   {
     title: "My Classes",
@@ -247,6 +251,9 @@ const attendanceData = [
 
 export default function TeacherDashboard() {
   const today = new Date();
+  const { user } = useAuth();
+  const greeting = greetingFor(today.getHours());
+  const firstName = user?.fullName.split(" ")[0] ?? "Teacher";
 
   const formattedDate = today.toLocaleDateString("en-IN", {
     day: "numeric",
@@ -256,7 +263,7 @@ export default function TeacherDashboard() {
   });
 
   return (
-    <AppLayouts>
+    <>
     <div className="space-y-6">
 
       {/* =====================================================
@@ -271,7 +278,7 @@ export default function TeacherDashboard() {
           </p>
 
           <h1 className="mt-1 text-[25px] sm:text-[28px] font-semibold tracking-tight text-[#0F1B33]">
-            Good morning, Rahul
+            {greeting}, {firstName}
           </h1>
 
           <p className="mt-1 text-[13px] text-[#7A8190]">
@@ -285,6 +292,42 @@ export default function TeacherDashboard() {
         </div>
 
       </div>
+
+      {/* =====================================================
+          CLASS TEACHER BANNER
+      ===================================================== */}
+
+      {user?.isClassTeacher && user.classTeacherOf && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-[#E8E4D9] bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-700">
+              <School className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="font-semibold text-[#0F1B33]">
+                You are the class teacher of {classLabel(user.classTeacherOf)}
+              </p>
+              <p className="text-[12px] text-[#7A8190]">
+                Track your section's attendance, progress and parent communication.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to="/teacher/class-teacher/overview"
+              className="rounded-xl bg-[#0F1B33] px-4 py-2 text-[13px] font-semibold text-white hover:bg-[#1c3154]"
+            >
+              My Class
+            </Link>
+            <Link
+              to="/teacher/class-teacher/progress"
+              className="rounded-xl border border-[#E8E4D9] px-4 py-2 text-[13px] font-semibold text-[#0F1B33] hover:bg-[#F5F3ED]"
+            >
+              Student Progress
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* =====================================================
           STATS
@@ -825,6 +868,6 @@ export default function TeacherDashboard() {
       </div>
 
     </div>
-    </AppLayouts>
+    </>
   );
 }

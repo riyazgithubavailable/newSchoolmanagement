@@ -15,8 +15,6 @@ import TodaySchedule from "@/components/teacher/TodaySchedule";
 import {
   timetableData,
 } from "@/types/dummyData";
-import AppLayout from "@/components/AppLayout";
-import { AppLayouts } from "@/layout/AppLayouts";
 
 export default function TeacherTimetable() {
   const [selectedDay, setSelectedDay] = useState("Monday");
@@ -57,7 +55,7 @@ export default function TeacherTimetable() {
   };
 
   return (
-    <AppLayouts>
+    <>
     <div className="min-h-screen bg-[#FBF9F3] px-4 py-5 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-[1600px]">
         {/* Page Header */}
@@ -159,7 +157,7 @@ export default function TeacherTimetable() {
         </div>
       </div>
     </div>
-    </AppLayouts>
+    </>
   );
 }
 

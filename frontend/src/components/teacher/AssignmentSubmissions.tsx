@@ -17,7 +17,6 @@ import {
   Save,
 } from "lucide-react";
 import { toast } from "sonner";
-import { AppLayouts } from "@/layout/AppLayouts";
 
 type SubmissionStatus = "Pending" | "Reviewed" | "Late";
 
@@ -285,7 +284,7 @@ export default function AssignmentSubmissions() {
   };
 
   return (
-    <AppLayouts>
+    <>
       <div className="min-h-screen bg-[#FBF9F3] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-[1600px]">
 
@@ -690,7 +689,7 @@ export default function AssignmentSubmissions() {
           </div>
         </div>
       )}
-    </AppLayouts>
+    </>
   );
 }
 

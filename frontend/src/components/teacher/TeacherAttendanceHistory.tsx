@@ -14,7 +14,6 @@ import {
   RotateCcw,
   BookOpen,
 } from "lucide-react";
-import { AppLayouts } from "@/layout/AppLayouts";
 
 type AttendanceStatus = "Present" | "Absent" | "Late";
 
@@ -242,7 +241,7 @@ export default function TeacherAttendanceHistory() {
   };
 
   return (
-    <AppLayouts>
+    <>
       <div className="min-h-screen bg-[#FBF9F3] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-[1600px]">
 
@@ -570,7 +569,7 @@ export default function TeacherAttendanceHistory() {
 
         </div>
       </div>
-    </AppLayouts>
+    </>
   );
 }
 
