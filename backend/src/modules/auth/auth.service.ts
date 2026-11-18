@@ -4,7 +4,16 @@ import { ROLES, USER_STATUS, type Role } from "../../constants/roles.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { SCHOOL_STATUS, SchoolModel, type SchoolDoc } from "../schools/school.model.js";
 import { UserModel, type UserDoc } from "../users/user.model.js";
-import type { LoginInput, RegisterInput } from "./auth.schemas.js";
+import crypto from "node:crypto";
+import { sendMail } from "../../services/mailer.js";
+import type {
+  ChangePasswordInput,
+  ForgotPasswordInput,
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
+} from "./auth.schemas.js";
+import { PasswordResetModel, RESET_TOKEN_TTL_MINUTES } from "./passwordReset.model.js";
 import { RefreshTokenModel } from "./refreshToken.model.js";
 import {
   accessTokenTtlSeconds,
@@ -46,6 +55,8 @@ export function toPublicUser(user: UserDoc, school: SchoolDoc | null) {
     schoolId: school ? String(school._id) : null,
     school: school ? { id: String(school._id), code: school.code, name: school.name } : null,
     lastLoginAt: user.lastLoginAt ?? null,
+    /** client must show the "set a new password" screen before anything else */
+    mustChangePassword: !!user.mustChangePassword,
   };
 }
 
@@ -57,6 +68,7 @@ async function issueTokens(user: UserDoc, info: ClientInfo) {
     sub: String(user._id),
     role: user.role as Role,
     schoolId: user.schoolId ? String(user.schoolId) : null,
+    ...(user.mustChangePassword ? { mustChangePassword: true } : {}),
   });
   const refresh = signRefreshToken(String(user._id));
   await RefreshTokenModel.create({
@@ -184,4 +196,98 @@ export const authService = {
     assertCanLogin(user, school);
     return toPublicUser(user, school);
   },
+
+  /**
+   * Logged-in user changes their own password. Every other device is logged out
+   * and a fresh token pair is returned for this one.
+   */
+  async changePassword(userId: string, input: ChangePasswordInput, info: ClientInfo) {
+    const user = await UserModel.findById(userId).select("+passwordHash");
+    if (!user) throw ApiError.unauthorized("INVALID_TOKEN", "User no longer exists.");
+
+    if (!(await bcrypt.compare(input.currentPassword, user.passwordHash))) {
+      throw ApiError.badRequest("WRONG_PASSWORD", "Current password is incorrect.", [
+        { field: "currentPassword", message: "Current password is incorrect." },
+      ]);
+    }
+    if (input.currentPassword === input.newPassword) {
+      throw ApiError.badRequest("SAME_PASSWORD", "New password must be different from the current one.", [
+        { field: "newPassword", message: "New password must be different from the current one." },
+      ]);
+    }
+
+    await applyNewPassword(user, input.newPassword, { mustChange: false });
+    const school = user.schoolId ? await SchoolModel.findById(user.schoolId) : null;
+    return { user: toPublicUser(user, school), tokens: await issueTokens(user, info) };
+  },
+
+  /**
+   * Emails a one-time reset link. Always answers the same way, so nobody can
+   * find out which emails are registered.
+   */
+  async forgotPassword(input: ForgotPasswordInput): Promise<{ devResetToken?: string }> {
+    const school = input.schoolCode ? await SchoolModel.findOne({ code: input.schoolCode }) : null;
+    if (input.schoolCode && (!school || school.status !== SCHOOL_STATUS.ACTIVE)) return {};
+
+    const user = await UserModel.findOne(
+      school
+        ? { schoolId: school._id, email: input.email }
+        : { schoolId: null, email: input.email, role: ROLES.SUPER_ADMIN },
+    );
+    if (!user || user.status !== USER_STATUS.ACTIVE) return {};
+
+    // only the newest link works
+    await PasswordResetModel.deleteMany({ userId: user._id });
+    const token = crypto.randomBytes(32).toString("hex");
+    await PasswordResetModel.create({
+      userId: user._id,
+      tokenHash: hashToken(token),
+      expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MINUTES * 60_000),
+    });
+
+    const link = `${env.webAppUrl}/#/reset-password?token=${token}`;
+    await sendMail({
+      to: user.email,
+      subject: "Reset your InstituteOS password",
+      text: [
+        `Hello ${user.fullName},`,
+        "",
+        `We received a request to reset your password${school ? ` for ${school.name} (${school.code})` : ""}.`,
+        `Open this link within ${RESET_TOKEN_TTL_MINUTES} minutes to choose a new password:`,
+        link,
+        "",
+        "If you didn't ask for this, you can ignore this email — your password won't change.",
+      ].join("\n"),
+    });
+
+    // lets Postman / local testing work without an email server
+    return env.nodeEnv === "development" ? { devResetToken: token } : {};
+  },
+
+  /** Completes "forgot password" with the token from the email link. */
+  async resetPassword(input: ResetPasswordInput) {
+    const reset = await PasswordResetModel.findOneAndDelete({ tokenHash: hashToken(input.token) });
+    if (!reset || reset.expiresAt < new Date()) {
+      throw ApiError.badRequest("INVALID_RESET_TOKEN", "This reset link is invalid or has expired. Please request a new one.");
+    }
+    const user = await UserModel.findById(reset.userId);
+    if (!user) throw ApiError.badRequest("INVALID_RESET_TOKEN", "This reset link is invalid or has expired.");
+
+    await applyNewPassword(user, input.newPassword, { mustChange: false });
+  },
 };
+
+/**
+ * Sets a password, logs the user out of every device and clears/sets the
+ * "must change password" flag. Used by change/reset and by admins.
+ */
+export async function applyNewPassword(user: UserDoc, plain: string, opts: { mustChange: boolean }) {
+  user.passwordHash = await hashPassword(plain);
+  user.mustChangePassword = opts.mustChange;
+  user.passwordChangedAt = new Date();
+  await user.save();
+  await Promise.all([
+    RefreshTokenModel.deleteMany({ userId: user._id }),
+    PasswordResetModel.deleteMany({ userId: user._id }),
+  ]);
+}

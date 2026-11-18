@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, Home, LogOut, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
+import { Bell, ChevronDown, Home, KeyRound, LogOut, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
 
 import {
   Breadcrumb,
@@ -169,6 +169,10 @@ export default function Headers({ className, sidebarCollapsed = false, onToggleS
                 >
                   <User className="mr-2 h-4 w-4" />
                   View Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/change-password")}>
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  Change Password
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => setLogoutOpen(true)} className="text-red-600 focus:text-red-600">

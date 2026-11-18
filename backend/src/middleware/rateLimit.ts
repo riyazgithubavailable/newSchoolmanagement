@@ -17,6 +17,16 @@ export const loginLimiter = rateLimit({
   message: json("TOO_MANY_ATTEMPTS", "Too many login attempts. Try again in 15 minutes."),
 });
 
+/** Stops reset-email spam and token guessing: 10 requests / hour per IP */
+export const forgotPasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 10,
+  skip,
+  standardHeaders: "draft-8",
+  legacyHeaders: false,
+  message: json("TOO_MANY_REQUESTS", "Too many password reset attempts. Try again later."),
+});
+
 /** Stops sign-up spam: 5 accounts / hour per IP */
 export const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,

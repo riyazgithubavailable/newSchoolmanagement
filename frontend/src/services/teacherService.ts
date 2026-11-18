@@ -104,14 +104,6 @@ export const teacherService = {
     return mockResponse(db.teacherProfile);
   },
 
-  // TODO(API): POST /auth/change-password
-  changePassword(payload: { currentPassword: string; newPassword: string }): Promise<{ ok: true }> {
-    if (payload.currentPassword === payload.newPassword) {
-      return mockError("New password must be different from the current password.");
-    }
-    return mockResponse({ ok: true as const });
-  },
-
   /* ---------------------------- Classes ---------------------------- */
 
   // TODO(API): GET /teacher/classes

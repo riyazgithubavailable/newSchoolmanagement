@@ -2,6 +2,8 @@
 
 import cors from "cors";
 import express from "express";
+import swaggerUi from "swagger-ui-express";
+import { openApiDocument } from "./docs/openapi.js";
 import { env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 import { apiRouter } from "./routes.js";
@@ -21,6 +23,19 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 
 app.use("/api/v1", apiRouter);
+
+// API documentation (Swagger UI) — for the web and Android developers
+app.get("/api/docs.json", (_req, res) => {
+  res.json(openApiDocument);
+});
+app.use(
+  "/api/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(openApiDocument, {
+    customSiteTitle: "InstituteOS API",
+    swaggerOptions: { persistAuthorization: true, displayRequestDuration: true },
+  }),
+);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

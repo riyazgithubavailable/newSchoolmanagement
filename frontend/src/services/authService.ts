@@ -74,3 +74,46 @@ export const authService = {
     return toAuthUser(data.user);
   },
 };
+
+/* ------------------------------------------------------------------ */
+/* Passwords                                                           */
+/* ------------------------------------------------------------------ */
+
+export type ChangePasswordResult = LoginResult;
+
+export const passwordService = {
+  /** Signs out other devices; returns fresh tokens for this one. */
+  async changePassword(currentPassword: string, newPassword: string): Promise<ChangePasswordResult> {
+    const data = await apiRequest<{ user: ApiUser; tokens: ApiTokens }>("/auth/change-password", {
+      method: "POST",
+      body: { currentPassword, newPassword },
+    });
+    return {
+      user: toAuthUser(data.user),
+      accessToken: data.tokens.accessToken,
+      refreshToken: data.tokens.refreshToken,
+    };
+  },
+
+  /** Always resolves the same way (doesn't reveal whether the email exists). */
+  async forgotPassword(payload: { schoolCode?: string; email: string }): Promise<{ devResetToken?: string }> {
+    return apiRequest<{ devResetToken?: string } | null>("/auth/forgot-password", {
+      method: "POST",
+      body: payload,
+      skipAuth: true,
+    }).then((d) => d ?? {});
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await apiRequest("/auth/reset-password", { method: "POST", body: { token, newPassword }, skipAuth: true });
+  },
+};
+
+/** Same rule as the backend (backend/src/modules/auth/auth.schemas.ts → passwordRule) */
+export function passwordProblems(pw: string): string[] {
+  const out: string[] = [];
+  if (pw.length < 8) out.push("At least 8 characters");
+  if (!/[A-Za-z]/.test(pw)) out.push("At least one letter");
+  if (!/\d/.test(pw)) out.push("At least one number");
+  return out;
+}

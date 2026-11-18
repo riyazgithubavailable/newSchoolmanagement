@@ -6,7 +6,10 @@ import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { AuthProvider } from "@/contexts/AuthContext";
 import { queryClient } from "@/lib/queryClient";
-import { PublicOnly, RequireClassTeacher, RequireRole } from "@/routes/guards";
+import { PublicOnly, RequireClassTeacher, RequireLogin, RequireRole } from "@/routes/guards";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import ResetPassword from "@/pages/auth/ResetPassword";
+import ChangePassword from "@/pages/auth/ChangePassword";
 import AppLayouts from "@/layout/AppLayouts";
 
 import Login from "@/pages/Login";
@@ -49,8 +52,16 @@ const AppRoutes = () => (
     {/* Public */}
     <Route element={<PublicOnly />}>
       <Route path="/" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
     </Route>
     <Route path="/login" element={<Navigate to="/" replace />} />
+    {/* opened from the email link — works whether or not someone is signed in */}
+    <Route path="/reset-password" element={<ResetPassword />} />
+
+    {/* Any signed-in user (forced after a temporary password) */}
+    <Route element={<RequireLogin />}>
+      <Route path="/change-password" element={<ChangePassword />} />
+    </Route>
 
     {/* Teacher */}
     <Route element={<RequireRole roles={["TEACHER"]} />}>

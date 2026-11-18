@@ -340,7 +340,7 @@ function LoginPage({ onSignUpClick }) {
                                 <button
                                     type="button"
                                     className="text-[12px] text-[#0F1B33] font-medium hover:text-[#C6952F] transition-colors"
-                                    onClick={() => console.log("Forgot password")}
+                                    onClick={() => navigate("/forgot-password")}
                                 >
                                     Forgot password?
                                 </button>

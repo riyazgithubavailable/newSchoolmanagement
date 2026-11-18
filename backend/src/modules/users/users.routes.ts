@@ -8,6 +8,8 @@ import { currentSchoolId, requireAuth, requireRole } from "../../middleware/auth
 import { validate } from "../../middleware/validate.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { sendSuccess } from "../../utils/response.js";
+import { adminSetPasswordSchema } from "../auth/auth.schemas.js";
+import { applyNewPassword } from "../auth/auth.service.js";
 import { RefreshTokenModel } from "../auth/refreshToken.model.js";
 import { UserModel, toObjectId } from "./user.model.js";
 
@@ -81,4 +83,25 @@ usersRouter.patch("/:id/status", validate(statusBody), async (req: Request, res:
   if (status !== USER_STATUS.ACTIVE) await RefreshTokenModel.deleteMany({ userId: user._id });
 
   sendSuccess(res, user, { message: `Account ${status.toLowerCase()}.` });
+});
+
+/**
+ * POST /api/v1/users/:id/reset-password  { "newPassword": "Temp1234" }
+ * Sets a temporary password; the user must change it at next login.
+ */
+usersRouter.post("/:id/reset-password", validate(adminSetPasswordSchema), async (req: Request, res: Response) => {
+  const id = String(req.params.id);
+  if (!isValidObjectId(id)) throw ApiError.badRequest("INVALID_ID", "Invalid user id.");
+  if (id === req.auth!.sub) {
+    throw ApiError.badRequest("USE_CHANGE_PASSWORD", "To change your own password use /auth/change-password.");
+  }
+
+  const user = await UserModel.findOne({ _id: id, schoolId: currentSchoolId(req) });
+  if (!user) throw ApiError.notFound("USER_NOT_FOUND", "User not found in your school.");
+  if (user.role === ROLES.PRINCIPAL && req.auth!.role !== ROLES.PRINCIPAL) {
+    throw ApiError.forbidden("FORBIDDEN", "Only a principal can reset another principal's password.");
+  }
+
+  await applyNewPassword(user, req.body.newPassword, { mustChange: true });
+  sendSuccess(res, user, { message: "Temporary password set. The user must change it at next sign in." });
 });

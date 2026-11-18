@@ -9,7 +9,7 @@ import {
   saveSession,
   updateSession,
 } from "@/lib/auth";
-import { authService, type LoginPayload, type RegisterPayload } from "@/services/authService";
+import { authService, passwordService, type LoginPayload, type RegisterPayload } from "@/services/authService";
 import type { AuthUser } from "@/types/school";
 
 interface AuthContextType {
@@ -18,6 +18,7 @@ interface AuthContextType {
   login: (payload: LoginPayload, remember: boolean) => Promise<AuthUser>;
   register: (payload: RegisterPayload) => Promise<AuthUser>;
   logout: () => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<AuthUser>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,6 +47,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     endSession(); // log out locally first so the UI reacts instantly
     await authService.logout(refreshToken);
   }, [endSession]);
+
+  /** Other devices are signed out by the server; this one gets fresh tokens. */
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    const res = await passwordService.changePassword(currentPassword, newPassword);
+    updateSession({ accessToken: res.accessToken, refreshToken: res.refreshToken, user: res.user });
+    setUser(res.user);
+    return res.user;
+  }, []);
 
   // refresh token rejected inside lib/api.ts → back to login
   useEffect(() => {
@@ -80,8 +89,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const value = useMemo<AuthContextType>(
-    () => ({ user, isAuthenticated: !!user, login, register, logout }),
-    [user, login, register, logout],
+    () => ({ user, isAuthenticated: !!user, login, register, logout, changePassword }),
+    [user, login, register, logout, changePassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

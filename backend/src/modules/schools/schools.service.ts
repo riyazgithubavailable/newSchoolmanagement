@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import { ROLES, USER_STATUS } from "../../constants/roles.js";
 import { ApiError } from "../../utils/ApiError.js";
-import { hashPassword } from "../auth/auth.service.js";
+import { applyNewPassword, hashPassword } from "../auth/auth.service.js";
 import { RefreshTokenModel } from "../auth/refreshToken.model.js";
 import { UserModel, type UserDoc } from "../users/user.model.js";
 import { SCHOOL_STATUS, SchoolModel, type SchoolDoc } from "./school.model.js";
@@ -82,6 +82,7 @@ async function createPrincipal(schoolId: Types.ObjectId, input: PrincipalInput) 
     phone: input.phone,
     role: ROLES.PRINCIPAL,
     status: USER_STATUS.ACTIVE, // created by the platform owner → no approval needed
+    mustChangePassword: true, // the platform owner chose this password, not the principal
     passwordHash: await hashPassword(input.password),
   });
 }
@@ -172,5 +173,14 @@ export const schoolsService = {
     const school = await findSchoolOr404(id);
     await createPrincipal(school._id, input);
     return this.get(id);
+  },
+
+  /** Principal forgot the password and has no email access → platform sets a temporary one. */
+  async resetPrincipalPassword(id: string, userId: string, newPassword: string) {
+    const school = await findSchoolOr404(id);
+    if (!Types.ObjectId.isValid(userId)) throw ApiError.badRequest("INVALID_ID", "Invalid user id.");
+    const principal = await UserModel.findOne({ _id: userId, schoolId: school._id, role: ROLES.PRINCIPAL });
+    if (!principal) throw ApiError.notFound("USER_NOT_FOUND", "Principal not found in this school.");
+    await applyNewPassword(principal, newPassword, { mustChange: true });
   },
 };

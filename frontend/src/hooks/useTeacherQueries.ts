@@ -53,9 +53,6 @@ export function useUpdatePreferences() {
   });
 }
 
-export const useChangePassword = () =>
-  useMutation({ mutationFn: teacherService.changePassword });
-
 export const useMyClasses = () =>
   useQuery({ queryKey: teacherKeys.classes, queryFn: teacherService.getMyClasses });
 

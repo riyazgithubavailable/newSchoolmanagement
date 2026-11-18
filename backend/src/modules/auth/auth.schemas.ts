@@ -49,5 +49,29 @@ export const refreshSchema = z.object({
   refreshToken: z.string({ error: "refreshToken is required." }).min(10, "refreshToken is required."),
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string({ error: "Current password is required." }).min(1, "Current password is required."),
+  newPassword: passwordRule,
+});
+
+export const forgotPasswordSchema = z.object({
+  /** omit only for the platform super admin */
+  schoolCode: schoolCode.optional(),
+  email,
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string({ error: "Reset token is required." }).min(20, "Invalid reset link."),
+  newPassword: passwordRule,
+});
+
+/** Principal/Admin (or super admin) setting a temporary password for someone else */
+export const adminSetPasswordSchema = z.object({
+  newPassword: passwordRule,
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

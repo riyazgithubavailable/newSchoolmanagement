@@ -5,6 +5,7 @@ import { ROLES } from "../../constants/roles.js";
 import { requireAuth, requireRole } from "../../middleware/auth.js";
 import { validate } from "../../middleware/validate.js";
 import { sendSuccess } from "../../utils/response.js";
+import { adminSetPasswordSchema } from "../auth/auth.schemas.js";
 import {
   createSchoolSchema,
   listSchoolsQuery,
@@ -50,3 +51,13 @@ schoolsRouter.post("/:id/principals", validate(principalInput), async (req: Requ
   const school = await schoolsService.addPrincipal(String(req.params.id), req.body as PrincipalInput);
   sendSuccess(res, school, { status: 201, message: "Principal account created." });
 });
+
+/** POST /api/v1/schools/:id/principals/:userId/reset-password  { "newPassword": "Temp1234" } */
+schoolsRouter.post(
+  "/:id/principals/:userId/reset-password",
+  validate(adminSetPasswordSchema),
+  async (req: Request, res: Response) => {
+    await schoolsService.resetPrincipalPassword(String(req.params.id), String(req.params.userId), req.body.newPassword);
+    sendSuccess(res, null, { message: "Temporary password set. The principal must change it at next sign in." });
+  },
+);

@@ -3,14 +3,30 @@ import type { Role } from "../constants/roles.js";
 import { verifyAccessToken } from "../modules/auth/tokens.js";
 import { ApiError } from "../utils/ApiError.js";
 
-/** Requires `Authorization: Bearer <accessToken>` (same for web and mobile). */
-export function requireAuth(req: Request, _res: Response, next: NextFunction) {
+function readToken(req: Request) {
   const header = req.headers.authorization ?? "";
   const [scheme, token] = header.split(" ");
   if (scheme !== "Bearer" || !token) {
     throw ApiError.unauthorized("UNAUTHORIZED", "Missing Authorization: Bearer <token> header.");
   }
-  req.auth = verifyAccessToken(token);
+  return verifyAccessToken(token);
+}
+
+/**
+ * Requires `Authorization: Bearer <accessToken>` (same for web and mobile).
+ * Users who still have to change a temporary password are blocked here.
+ */
+export function requireAuth(req: Request, _res: Response, next: NextFunction) {
+  req.auth = readToken(req);
+  if (req.auth.mustChangePassword) {
+    throw ApiError.forbidden("PASSWORD_CHANGE_REQUIRED", "Please set a new password before continuing.");
+  }
+  next();
+}
+
+/** Like requireAuth, but also lets through users who must change their password. */
+export function requireAuthAllowPasswordChange(req: Request, _res: Response, next: NextFunction) {
+  req.auth = readToken(req);
   next();
 }
 

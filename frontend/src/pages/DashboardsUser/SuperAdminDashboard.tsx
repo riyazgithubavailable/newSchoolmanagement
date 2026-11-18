@@ -24,7 +24,13 @@ import Swal from "sweetalert2";
 
 import { ApiError } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { useAddPrincipal, useCreateSchool, useSchools, useSetSchoolStatus } from "@/hooks/usePlatformQueries";
+import {
+  useAddPrincipal,
+  useCreateSchool,
+  useResetPrincipalPassword,
+  useSchools,
+  useSetSchoolStatus,
+} from "@/hooks/usePlatformQueries";
 import type { PrincipalPayload, SchoolStatus, SchoolSummary } from "@/services/platformService";
 import {
   EmptyState,
@@ -286,7 +292,14 @@ export default function SuperAdminDashboard() {
           setCredentials(c);
         }}
       />
-      <SchoolDetailModal school={viewing} onClose={() => setViewing(null)} />
+      <SchoolDetailModal
+        school={viewing}
+        onClose={() => setViewing(null)}
+        onPasswordReset={(c) => {
+          setViewing(null);
+          setCredentials(c);
+        }}
+      />
       <CredentialsModal credentials={credentials} onClose={() => setCredentials(null)} />
     </PageShell>
   );
@@ -655,9 +668,45 @@ function AddPrincipalModal({
 /* Details & credentials                                                */
 /* ------------------------------------------------------------------ */
 
-function SchoolDetailModal({ school, onClose }: { school: SchoolSummary | null; onClose: () => void }) {
+function SchoolDetailModal({
+  school,
+  onClose,
+  onPasswordReset,
+}: {
+  school: SchoolSummary | null;
+  onClose: () => void;
+  onPasswordReset: (c: Credentials) => void;
+}) {
+  const reset = useResetPrincipalPassword();
   if (!school) return null;
   const c = school.userCounts;
+
+  const resetPassword = async (p: SchoolSummary["principals"][number]) => {
+    const ok = await Swal.fire({
+      title: `Reset password for ${p.fullName}?`,
+      text: "A new temporary password will be created. They will be signed out everywhere and must choose their own password at next sign in.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Reset password",
+      confirmButtonColor: "#0F1B33",
+    });
+    if (!ok.isConfirmed) return;
+    const newPassword = generatePassword();
+    reset.mutate(
+      { schoolId: school.id, userId: p.id, newPassword },
+      {
+        onSuccess: () =>
+          onPasswordReset({
+            title: "Temporary password set",
+            schoolName: school.name,
+            schoolCode: school.code,
+            email: p.email,
+            password: newPassword,
+          }),
+        onError: (e) => toast.error(errorMessage(e)),
+      },
+    );
+  };
   return (
     <Modal open onClose={onClose} title={school.name} description={`School code ${school.code}`} size="lg">
       <div className="space-y-5">
@@ -700,9 +749,19 @@ function SchoolDetailModal({ school, onClose }: { school: SchoolSummary | null; 
                     {p.phone ? ` · ${p.phone}` : ""}
                   </p>
                 </div>
-                <span className="text-xs text-gray-500">
-                  {p.lastLoginAt ? `Last login ${fmtDate(p.lastLoginAt)}` : "Never logged in"}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-gray-500">
+                    {p.lastLoginAt ? `Last login ${fmtDate(p.lastLoginAt)}` : "Never logged in"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => resetPassword(p)}
+                    disabled={reset.isPending}
+                    className={`${secondaryBtn} px-2.5 py-1.5 text-xs`}
+                  >
+                    <KeyRound size={13} /> Reset password
+                  </button>
+                </div>
               </li>
             ))}
           </ul>

@@ -83,3 +83,10 @@ export const platformService = {
   addPrincipal: (id: string, payload: PrincipalPayload) =>
     apiRequest<SchoolSummary>(`/schools/${id}/principals`, { method: "POST", body: payload }),
 };
+
+/** Sets a temporary password; the principal must change it at next sign in. */
+export const resetPrincipalPassword = (schoolId: string, userId: string, newPassword: string) =>
+  apiRequest<null>(`/schools/${schoolId}/principals/${userId}/reset-password`, {
+    method: "POST",
+    body: { newPassword },
+  });

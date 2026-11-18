@@ -14,11 +14,14 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { ApiError } from "@/lib/api";
+import { passwordProblems } from "@/services/authService";
 
 import { Switch } from "@/components/ui/switch";
 import { getInitials } from "@/lib/nameUtils";
 import {
-  useChangePassword,
+
   useTeacherProfile,
   useUpdatePreferences,
   useUpdateProfile,
@@ -326,36 +329,43 @@ function ProfessionalTab({ profile }: { profile: Profile }) {
 /* ------------------------------------------------------------------ */
 
 function SecurityTab() {
-  const change = useChangePassword();
+  const { changePassword } = useAuth();
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ current: "", next: "", confirm: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const rules = [
-    { ok: form.next.length >= 8, label: "At least 8 characters" },
-    { ok: /[A-Za-z]/.test(form.next) && /\d/.test(form.next), label: "Letters and numbers" },
-    { ok: /[^A-Za-z0-9]/.test(form.next), label: "One special character" },
-  ];
+  // same rule as the backend
+  const problems = passwordProblems(form.next);
+  const rules = ["At least 8 characters", "At least one letter", "At least one number"].map((label) => ({
+    label,
+    ok: form.next.length > 0 && !problems.includes(label),
+  }));
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const errs: Record<string, string> = {};
     if (!form.current) errs.current = "Enter your current password.";
-    if (!rules.every((r) => r.ok)) errs.next = "Password doesn't meet all requirements.";
+    if (problems.length) errs.next = "Password doesn't meet all requirements.";
     if (form.next !== form.confirm) errs.confirm = "Passwords don't match.";
     setErrors(errs);
     if (Object.keys(errs).length) return;
 
-    change.mutate(
-      { currentPassword: form.current, newPassword: form.next },
-      {
-        onSuccess: () => {
-          toast.success("Password changed successfully");
-          setForm({ current: "", next: "", confirm: "" });
-        },
-        onError: (err) => toast.error(errorMessage(err)),
-      },
-    );
+    setSaving(true);
+    try {
+      await changePassword(form.current, form.next);
+      toast.success("Password changed. Other devices have been signed out.");
+      setForm({ current: "", next: "", confirm: "" });
+    } catch (err) {
+      // backend tells which field is wrong (e.g. current password incorrect)
+      if (err instanceof ApiError && err.details?.length) {
+        setErrors(Object.fromEntries(err.details.map((d) => [d.field === "currentPassword" ? "current" : "next", d.message])));
+      }
+      toast.error(errorMessage(err));
+    } finally {
+      setSaving(false);
+    }
   };
+  const change = { isPending: saving };
 
   return (
     <Panel title="Change Password" description="Use a strong password you don't use anywhere else.">

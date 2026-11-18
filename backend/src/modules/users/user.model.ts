@@ -10,6 +10,9 @@ const userSchema = new Schema(
     phone: { type: String, trim: true },
     /** bcrypt hash — never returned by queries unless explicitly selected */
     passwordHash: { type: String, required: true, select: false },
+    /** true when someone else set the password (account created / reset by admin) */
+    mustChangePassword: { type: Boolean, default: false },
+    passwordChangedAt: { type: Date, default: null },
     role: { type: String, enum: ALL_ROLES, required: true },
     status: {
       type: String,

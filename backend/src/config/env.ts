@@ -46,4 +46,14 @@ export const env = {
     accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN?.trim() || "15m",
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN?.trim() || "30d",
   },
+  /** Web app address — used in links inside emails (password reset...) */
+  webAppUrl: (process.env.WEB_APP_URL?.trim() || "http://localhost:8080").replace(/\/$/, ""),
+  mail: {
+    from: process.env.MAIL_FROM?.trim() || "InstituteOS <no-reply@instituteos.local>",
+    /** when SMTP_HOST is empty, emails are printed to the console instead of sent */
+    smtpHost: process.env.SMTP_HOST?.trim() || "",
+    smtpPort: Number(process.env.SMTP_PORT) || 587,
+    smtpUser: process.env.SMTP_USER?.trim() || "",
+    smtpPass: process.env.SMTP_PASS?.trim() || "",
+  },
 } as const;

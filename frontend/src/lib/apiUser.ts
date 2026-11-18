@@ -15,6 +15,7 @@ export interface ApiUser {
   schoolId: string | null;
   school: { id: string; code: string; name: string } | null;
   lastLoginAt: string | null;
+  mustChangePassword?: boolean;
 }
 
 export function toAuthUser(u: ApiUser): AuthUser {
@@ -25,6 +26,7 @@ export function toAuthUser(u: ApiUser): AuthUser {
     role: u.role,
     schoolCode: u.school?.code ?? "",
     schoolName: u.school?.name ?? "",
+    mustChangePassword: !!u.mustChangePassword,
   };
 
   // TODO(API): class-teacher assignment will come from the academics API

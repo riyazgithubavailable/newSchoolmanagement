@@ -9,6 +9,8 @@ export interface AccessPayload {
   sub: string; // user id
   role: Role;
   schoolId: string | null;
+  /** user must set a new password before using anything else */
+  mustChangePassword?: boolean;
 }
 
 interface RefreshPayload {

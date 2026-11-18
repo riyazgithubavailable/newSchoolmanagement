@@ -21,6 +21,8 @@ export interface AuthUser {
   role: UserRole;
   schoolCode: string;
   schoolName?: string;
+  /** a temporary password was set by an admin — must be changed first */
+  mustChangePassword?: boolean;
   /** Teacher only: true if this teacher is class teacher of a section */
   isClassTeacher?: boolean;
   /** Teacher only: the section this teacher is class teacher of */

@@ -1,6 +1,12 @@
 import type { Request, Response } from "express";
 import { sendSuccess } from "../../utils/response.js";
-import type { LoginInput, RegisterInput } from "./auth.schemas.js";
+import type {
+  ChangePasswordInput,
+  ForgotPasswordInput,
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
+} from "./auth.schemas.js";
 import { authService, type ClientInfo } from "./auth.service.js";
 
 /** Clients identify themselves with `X-Client: web` or `X-Client: android` */
@@ -36,5 +42,22 @@ export const authController = {
   async me(req: Request, res: Response) {
     const user = await authService.me(req.auth!.sub);
     sendSuccess(res, { user });
+  },
+
+  async changePassword(req: Request, res: Response) {
+    const result = await authService.changePassword(req.auth!.sub, req.body as ChangePasswordInput, clientInfo(req));
+    sendSuccess(res, result, { message: "Password changed. Other devices have been signed out." });
+  },
+
+  async forgotPassword(req: Request, res: Response) {
+    const dev = await authService.forgotPassword(req.body as ForgotPasswordInput);
+    sendSuccess(res, dev, {
+      message: "If an account exists with these details, a password reset link has been sent to its email.",
+    });
+  },
+
+  async resetPassword(req: Request, res: Response) {
+    await authService.resetPassword(req.body as ResetPasswordInput);
+    sendSuccess(res, null, { message: "Password updated. You can now sign in with your new password." });
   },
 };

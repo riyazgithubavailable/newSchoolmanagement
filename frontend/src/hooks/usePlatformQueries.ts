@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   platformService,
+  resetPrincipalPassword,
   type CreateSchoolPayload,
   type ListSchoolsParams,
   type PrincipalPayload,
@@ -35,3 +36,9 @@ export const useSetSchoolStatus = () =>
 
 export const useAddPrincipal = () =>
   useSchoolMutation(({ id, payload }: { id: string; payload: PrincipalPayload }) => platformService.addPrincipal(id, payload));
+
+export const useResetPrincipalPassword = () =>
+  useMutation({
+    mutationFn: ({ schoolId, userId, newPassword }: { schoolId: string; userId: string; newPassword: string }) =>
+      resetPrincipalPassword(schoolId, userId, newPassword),
+  });
