@@ -1,22 +1,68 @@
 // src/lib/auth.ts
-export const TOKEN_KEY = "dwpps_token";
-export const PROFILE_KEY = "profileData";
+// Session persistence. "Remember me" → localStorage (survives browser restart),
+// otherwise sessionStorage (cleared when the tab closes).
 
-export function getToken(): string | null {
-  return sessionStorage.getItem(TOKEN_KEY);
+import { isUserRole } from "@/config/roles";
+import type { AuthUser } from "@/types/school";
+
+const ACCESS_KEY = "ios_access_token";
+const REFRESH_KEY = "ios_refresh_token";
+const USER_KEY = "ios_user";
+const ALL_KEYS = [ACCESS_KEY, REFRESH_KEY, USER_KEY];
+
+export interface StoredSession {
+  accessToken: string;
+  refreshToken: string;
+  user: AuthUser;
 }
 
-export function isLoggedIn(): boolean {
-  const t = getToken();
-  return !!t && t.length > 10;
+const stores = () => [sessionStorage, localStorage];
+
+/** the storage that currently holds the session (so refresh writes back to the same place) */
+function activeStore(): Storage | null {
+  return stores().find((s) => s.getItem(ACCESS_KEY)) ?? null;
 }
 
-export function getProfileData<T = any>(): T | null {
-  const raw = sessionStorage.getItem(PROFILE_KEY);
-  if (!raw) return null;
+export function getSession(): StoredSession | null {
+  const store = activeStore();
+  if (!store) return null;
+  const accessToken = store.getItem(ACCESS_KEY);
+  const refreshToken = store.getItem(REFRESH_KEY);
   try {
-    return JSON.parse(raw) as T;
+    const user = JSON.parse(store.getItem(USER_KEY) ?? "null") as AuthUser | null;
+    if (accessToken && refreshToken && user && isUserRole(user.role)) {
+      return { accessToken, refreshToken, user };
+    }
   } catch {
-    return null;
+    /* corrupted entry */
   }
+  return null;
 }
+
+export const getAccessToken = () => activeStore()?.getItem(ACCESS_KEY) ?? null;
+export const getRefreshToken = () => activeStore()?.getItem(REFRESH_KEY) ?? null;
+
+export function saveSession(session: StoredSession, remember: boolean) {
+  clearSession();
+  const store = remember ? localStorage : sessionStorage;
+  store.setItem(ACCESS_KEY, session.accessToken);
+  store.setItem(REFRESH_KEY, session.refreshToken);
+  store.setItem(USER_KEY, JSON.stringify(session.user));
+}
+
+/** after /auth/refresh — keep using the same storage */
+export function updateSession(session: StoredSession) {
+  const store = activeStore() ?? sessionStorage;
+  store.setItem(ACCESS_KEY, session.accessToken);
+  store.setItem(REFRESH_KEY, session.refreshToken);
+  store.setItem(USER_KEY, JSON.stringify(session.user));
+}
+
+export function clearSession() {
+  for (const s of stores()) ALL_KEYS.forEach((k) => s.removeItem(k));
+  // keys used by the earlier mock build
+  for (const s of stores()) ["ios_token"].forEach((k) => s.removeItem(k));
+}
+
+/** Fired when the session ends outside React (e.g. refresh token rejected) */
+export const SESSION_EXPIRED_EVENT = "ios:session-expired";

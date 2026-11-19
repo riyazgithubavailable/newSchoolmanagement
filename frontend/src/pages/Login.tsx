@@ -1,861 +1,400 @@
-// import React, { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
+// School sign-in (principal, office admin, teacher; later students & parents).
+// The platform owner uses the separate Platform Admin app.
 
-// import {
-//     Card,
-//     CardContent,
-//     CardHeader,
-//     CardTitle,
-//     CardDescription,
-// } from "@/components/ui/card";
-// import { Input } from "@/components/ui/input";
-// import { Button } from "@/components/ui/button";
-// import { Label } from "@/components/ui/label";
-
-// import { Shield, Loader2, Eye, EyeOff } from "lucide-react";
-// import { useToast } from "@/hooks/use-toast";
-
-// import { loginPlantEmployee } from "@/hooks/usePlantEmployeeAuth.ts";
-// import { useAuth } from "@/contexts/AuthContext";
-
-// export default function Login(): JSX.Element {
-//     const [username, setUsername] = useState<string>("");
-//     const [password, setPassword] = useState<string>("");
-//     const [showPassword, setShowPassword] = useState<boolean>(false);
-//     const [loading, setLoading] = useState<boolean>(false);
-
-//     const { setSession } = useAuth();
-//     const navigate = useNavigate();
-//     const { toast } = useToast();
-
-//     // Remove dark mode on login page for better aesthetics
-//     useEffect(() => {
-//         const isDark = document.documentElement.classList.contains("dark");
-//         document.documentElement.classList.remove("dark");
-//         return () => {
-//             if (isDark) document.documentElement.classList.add("dark");
-//         };
-//     }, []);
-
-//     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-//         e.preventDefault();
-//         setLoading(true);
-
-//         try {
-//             const res = await loginPlantEmployee({ Username: username, Password: password });
-
-//             setSession(res.data?.token, res.data);
-
-//             toast({
-//                 title: "Login Successful",
-//                 description: `Welcome, ${res.data?.fullName} (${res.data?.roleName}).`,
-//             });
-
-//             const role = res.data?.roleName;
-//             setTimeout(() => {
-//                 if (role === "Plant Admin") navigate("/dashboard");
-//                 else if (role === "Gate Operator") navigate("/gateOperator-dashboard");
-//                 else if (role === "Primary-Segregation Supervisor") navigate("/primary-segregation-dashboard");
-//                 else if (role === "WeighBridge Operator") navigate("/weight-bridge-operator-dashboard"); 
-//                 else if (role === "Secondary-Segregation Supervisor") navigate("/secondary-segregation-dashboard");
-//                 else if (role === "Processing Supervisor") navigate("/waste-processing-dashboard");
-//                 else if (role === "Stock Manager") navigate("/waste-stock-dashboard");
-//                 else if (role === "Sales Manager") navigate("/sales-dashboard");
-//                 else navigate("/dashboard");
-//             }, 300);
-//         } catch (err: any) {
-//             toast({
-//                 title: "Authentication Failed",
-//                 description: err?.message || "Invalid credentials. Please verify your details.",
-//                 variant: "destructive",
-//             });
-//         } finally {
-//             setLoading(false);
-//         }
-//     };
-
-//     return (
-//         <div className="relative min-h-screen overflow-hidden">
-//             {/* Background image */}
-//             <div className="absolute inset-0 bg-[url('/Login-Image.jpg')] bg-cover bg-center" />
-
-//             {/* Dark overlay */}
-//             <div className="absolute inset-0 bg-black/20" />
-
-//             {/* Content */}
-//             <div className="relative z-10 min-h-screen">
-//                 <div className="mx-auto flex min-h-screen w-full max-w-6xl items-center px-4">
-//                     <div className="w-full md:w-[460px]">
-
-//                         {/* Logo + Title */}
-//                         <div className="mb-6 flex items-center gap-3">
-//                             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-800">
-//                                 <Shield className="h-6 w-6 text-white" />
-//                             </div>
-//                             <div>
-//                                 <h1 className="text-2xl font-bold text-black leading-tight">Waste Processing</h1>
-//                                 <p className="text-sm text-black">Monitoring Portal</p>
-//                             </div>
-//                         </div>
-
-//                         {/* Main Login Card */}
-//                         <Card className="shadow-4xl border border-gray-200 bg-white">
-//                             <CardHeader className="pb-3">
-//                                 <CardTitle className="text-xl">Sign In</CardTitle>
-//                                 <CardDescription>Access the plant operations dashboard</CardDescription>
-//                             </CardHeader>
-
-//                             <CardContent>
-//                                 <form onSubmit={handleSubmit} className="space-y-4">
-//                                     {/* Username */}
-//                                     <div className="space-y-2">
-//                                         <Label htmlFor="username">Username</Label>
-//                                         <Input
-//                                             id="username"
-//                                             type="text"
-//                                             placeholder="Enter username"
-//                                             value={username}
-//                                             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-//                                                 setUsername(e.target.value)
-//                                             }
-//                                             required
-//                                         />
-//                                     </div>
-
-//                                     {/* Password */}
-//                                     <div className="space-y-2">
-//                                         <Label htmlFor="password">Password</Label>
-//                                         <div className="relative">
-//                                             <Input
-//                                                 id="password"
-//                                                 type={showPassword ? "text" : "password"}
-//                                                 placeholder="••••••••"
-//                                                 value={password}
-//                                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-//                                                     setPassword(e.target.value)
-//                                                 }
-//                                                 className="pr-10"
-//                                                 required
-//                                             />
-//                                             <button
-//                                                 type="button"
-//                                                 onClick={() => setShowPassword((prev) => !prev)}
-//                                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-green-800"
-//                                                 aria-label={showPassword ? "Hide Password" : "Show Password"}
-//                                             >
-//                                                 {showPassword ? (
-//                                                     <EyeOff className="h-4 w-4" />
-//                                                 ) : (
-//                                                     <Eye className="h-4 w-4" />
-//                                                 )}
-//                                             </button>
-//                                         </div>
-//                                     </div>
-
-//                                     {/* Forgot Password */}
-//                                     <div className="flex items-center justify-between pt-1">
-//                                         <button
-//                                             type="button"
-//                                             className="text-sm font-medium text-green-800 hover:underline"
-//                                             onClick={() =>
-//                                                 toast({
-//                                                     title: "Forgot Password",
-//                                                     description:
-//                                                         "Please contact your system administrator to reset credentials.",
-//                                                 })
-//                                             }
-//                                         >
-//                                             Forgot password?
-//                                         </button>
-//                                     </div>
-
-//                                     {/* Login Button */}
-//                                     <Button
-//                                         type="submit"
-//                                         className="w-full bg-green-800 hover:bg-green-900 flex items-center justify-center gap-2"
-//                                         disabled={loading}
-//                                     >
-//                                         {loading ? (
-//                                             <>
-//                                                 <Loader2 className="h-4 w-4 animate-spin" />
-//                                                 Authenticating…
-//                                             </>
-//                                         ) : (
-//                                             "Login"
-//                                         )}
-//                                     </Button>
-
-//                                     {/* Divider */}
-//                                     {/* <div className="relative flex items-center gap-3 my-1">
-//                                         <div className="flex-1 h-px bg-gray-200" />
-//                                         <span className="text-xs text-gray-400">or</span>
-//                                         <div className="flex-1 h-px bg-gray-200" />
-//                                     </div> */}
-
-//                                     {/* Admin Login Button */}
-//                                     {/* <Button
-//                                         type="button"
-//                                         variant="outline"
-//                                         className="w-50 border-green-800 text-green-800 hover:bg-green-800  flex items-center justify-center gap-2"
-//                                         onClick={() => navigate("/admin-login")}
-//                                     >
-//                                         <Shield className="h-4 w-4" />
-//                                         Admin Login
-//                                     </Button> */}
-//                                 </form>
-//                             </CardContent>
-//                         </Card>
-//                     </div>
-
-//                     {/* Right side open for background */}
-//                     <div className="hidden flex-1 md:block" />
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// }
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-    ArrowLeft,
-    ArrowRight,
-    CheckCircle2,
-    Eye,
-    EyeOff,
-    GraduationCap,
-    Lock,
-    Mail,
-    ShieldCheck,
-    User,
-    Users,
+  AlertCircle,
+  ArrowRight,
+  BookOpenCheck,
+  CalendarCheck,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  GraduationCap,
+  Loader2,
+  Lock,
+  Mail,
+  MessageSquare,
+  School,
+  ShieldCheck,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { getHomeRoute, ROLE_PATH } from "@/config/roles";
+import { apiRequest, ApiError } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
-// ---------------------------------------------------------------------------
-// Role tabs shared between Login and Signup
-// ---------------------------------------------------------------------------
-const ROLES = [
-    { id: "teacher", label: "Teacher", icon: GraduationCap },
-    { id: "parent", label: "Parent", icon: Users },
-    { id: "admin", label: "Principal / Admin", icon: ShieldCheck },
+/* ------------------------------------------------------------------ */
+/* Helpers                                                              */
+/* ------------------------------------------------------------------ */
+
+const LAST_SCHOOL_KEY = "ios_last_school_code";
+
+const readLastSchool = () => {
+  try {
+    return localStorage.getItem(LAST_SCHOOL_KEY) ?? "";
+  } catch {
+    return "";
+  }
+};
+
+// Accounts created by `npm run seed` in the backend (development builds only).
+const DEMO = {
+  code: "DEMO01",
+  accounts: [
+    { label: "Principal", email: "principal@demo.school", password: "Principal@123" },
+    { label: "Office admin", email: "admin@demo.school", password: "Admin@123" },
+    { label: "Teacher", email: "teacher@demo.school", password: "Teacher@123" },
+  ],
+};
+
+type Lookup = { state: "idle" | "checking" | "found" | "missing" | "error"; name?: string };
+
+/** Shows the school's name while the code is typed (debounced, cancellable). */
+function useSchoolLookup(code: string): Lookup {
+  const [result, setResult] = useState<Lookup>({ state: "idle" });
+  useEffect(() => {
+    const clean = code.trim().toUpperCase();
+    if (clean.length < 3) {
+      setResult({ state: "idle" });
+      return;
+    }
+    setResult({ state: "checking" });
+    const ctrl = new AbortController();
+    const t = setTimeout(async () => {
+      try {
+        const s = await apiRequest<{ name: string }>(`/public/schools/${encodeURIComponent(clean)}`, {
+          skipAuth: true,
+          signal: ctrl.signal,
+        });
+        setResult({ state: "found", name: s.name });
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return;
+        setResult({ state: err instanceof ApiError && err.status === 404 ? "missing" : "error" });
+      }
+    }, 400);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [code]);
+  return result;
+}
+
+const input =
+  "w-full rounded-[10px] border border-[#E4E1D8] bg-white py-2.5 text-[14px] text-[#0F1B33] placeholder:text-[#A8AAB0] transition focus:border-[#C6952F] focus:outline-none focus:ring-2 focus:ring-[#C6952F]/30";
+
+/* ------------------------------------------------------------------ */
+/* Page                                                                 */
+/* ------------------------------------------------------------------ */
+
+export default function Login() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [schoolCode, setSchoolCode] = useState(readLastSchool);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [capsLock, setCapsLock] = useState(false);
+  const [remember, setRemember] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const emailRef = useRef<HTMLInputElement>(null);
+
+  const school = useSchoolLookup(schoolCode);
+
+  // returning user: school code already filled → start at the email field
+  useEffect(() => {
+    if (readLastSchool()) emailRef.current?.focus();
+  }, []);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!schoolCode.trim() || !email.trim() || !password) return;
+    setBusy(true);
+    setError("");
+    try {
+      const user = await login({ schoolCode: schoolCode.trim(), email: email.trim(), password }, remember);
+      try {
+        localStorage.setItem(LAST_SCHOOL_KEY, schoolCode.trim().toUpperCase());
+      } catch {
+        /* storage blocked — not important */
+      }
+      const from = (location.state as { from?: string } | null)?.from;
+      const target = typeof from === "string" && from.startsWith(`/${ROLE_PATH[user.role]}/`) ? from : getHomeRoute(user.role);
+      navigate(target, { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const fillDemo = (a: (typeof DEMO.accounts)[number]) => {
+    setSchoolCode(DEMO.code);
+    setEmail(a.email);
+    setPassword(a.password);
+    setError("");
+  };
+
+  const checkCaps = (e: React.KeyboardEvent) => setCapsLock(e.getModifierState?.("CapsLock") ?? false);
+
+  return (
+    <div className="flex min-h-screen w-full bg-[#FBF9F3] font-[Inter,system-ui,sans-serif]">
+      <BrandPanel />
+
+      <main className="flex min-h-screen w-full items-center justify-center px-5 py-10 sm:px-10 lg:w-[54%]">
+        <div className="w-full max-w-[400px]">
+          {/* mobile logo */}
+          <div className="mb-8 flex items-center gap-2.5 lg:hidden">
+            <Logo dark />
+          </div>
+
+          <h1 className="font-serif text-[1.85rem] leading-tight text-[#0F1B33]">Sign in</h1>
+          <p className="mt-1.5 text-[14px] text-[#6B7280]">Welcome back. Use the details your school gave you.</p>
+
+          {error && (
+            <div role="alert" className="mt-5 flex gap-2.5 rounded-[10px] border border-red-200 bg-red-50 px-3.5 py-3 text-[13px] text-red-700">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
+            {/* School code */}
+            <div>
+              <label htmlFor="schoolCode" className="mb-1.5 block text-[12.5px] font-medium text-[#374151]">
+                School code
+              </label>
+              <div className="relative">
+                <School className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A8AAB0]" />
+                <input
+                  id="schoolCode"
+                  autoComplete="organization"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                  placeholder="e.g. DPS01"
+                  value={schoolCode}
+                  onChange={(e) => setSchoolCode(e.target.value.toUpperCase())}
+                  required
+                  aria-describedby="school-status"
+                  className={cn(input, "pl-9 pr-9 font-medium tracking-wide")}
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2">
+                  {school.state === "checking" && <Loader2 className="h-4 w-4 animate-spin text-[#A8AAB0]" />}
+                  {school.state === "found" && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                  {school.state === "missing" && <AlertCircle className="h-4 w-4 text-red-500" />}
+                </span>
+              </div>
+              <p id="school-status" aria-live="polite" className="mt-1.5 min-h-[18px] text-[12px]">
+                {school.state === "found" && <span className="font-medium text-green-700">{school.name}</span>}
+                {school.state === "missing" && <span className="text-red-600">No school found with this code.</span>}
+                {school.state === "idle" && <span className="text-[#9CA3AF]">Printed on your school ID card or welcome letter.</span>}
+              </p>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label htmlFor="email" className="mb-1.5 block text-[12.5px] font-medium text-[#374151]">
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A8AAB0]" />
+                <input
+                  ref={emailRef}
+                  id="email"
+                  type="email"
+                  autoComplete="username"
+                  placeholder="name@school.edu"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className={cn(input, "pl-9 pr-3")}
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label htmlFor="password" className="block text-[12.5px] font-medium text-[#374151]">
+                  Password
+                </label>
+                <Link to="/forgot-password" className="text-[12.5px] font-medium text-[#0F1B33] hover:text-[#C6952F]">
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A8AAB0]" />
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="Your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  onKeyUp={checkCaps}
+                  onKeyDown={checkCaps}
+                  required
+                  className={cn(input, "pl-9 pr-10")}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A8AAB0] hover:text-[#374151]"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {capsLock && <p className="mt-1.5 text-[12px] text-amber-700">Caps Lock is on.</p>}
+            </div>
+
+            <label className="flex cursor-pointer select-none items-center gap-2 text-[13px] text-[#6B7280]">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="h-4 w-4 rounded border-[#D1D5DB] accent-[#0F1B33]"
+              />
+              Stay signed in on this device
+            </label>
+
+            <button
+              type="submit"
+              disabled={busy || school.state === "missing"}
+              className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-[#0F1B33] py-3 text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#16274A] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {busy ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Signing in...
+                </>
+              ) : (
+                <>
+                  Sign in <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
+          </form>
+
+          {import.meta.env.DEV && (
+            <div className="mt-5 rounded-[10px] border border-dashed border-[#C6952F]/50 bg-[#C6952F]/5 px-3.5 py-3">
+              <p className="text-[11.5px] font-medium text-[#8a6a22]">Development demo — school {DEMO.code}</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {DEMO.accounts.map((a) => (
+                  <button
+                    key={a.email}
+                    type="button"
+                    onClick={() => fillDemo(a)}
+                    className="rounded-full border border-[#E8E4D9] bg-white px-3 py-1 text-[12px] font-medium text-[#0F1B33] hover:border-[#C6952F]"
+                  >
+                    {a.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <p className="mt-6 text-center text-[13px] text-[#6B7280]">
+            No account yet? Your school office or principal creates it for you.
+          </p>
+
+          <div className="mt-8 flex items-center justify-center gap-2 text-[11.5px] text-[#9CA3AF]">
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Your school's data is private and encrypted in transit.
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Brand panel                                                          */
+/* ------------------------------------------------------------------ */
+
+function Logo({ dark = false }: { dark?: boolean }) {
+  return (
+    <>
+      <div
+        className={cn(
+          "flex h-9 w-9 items-center justify-center rounded-[9px]",
+          dark ? "bg-[#0F1B33] text-[#C6952F]" : "bg-[#C6952F] text-[#0F1B33]",
+        )}
+      >
+        <GraduationCap className="h-5 w-5" />
+      </div>
+      <span className={cn("text-[16px] font-semibold tracking-tight", dark ? "text-[#0F1B33]" : "text-white")}>InstituteOS</span>
+    </>
+  );
+}
+
+const PREVIEW = [
+  { icon: CalendarCheck, title: "Attendance marked", text: "Class 10-A · 28 of 30 present", tone: "bg-green-400/15 text-green-300" },
+  { icon: BookOpenCheck, title: "Homework assigned", text: "Mathematics · due Friday", tone: "bg-sky-400/15 text-sky-300" },
+  { icon: MessageSquare, title: "Message to parents", text: "PTM on Saturday, 10 AM", tone: "bg-[#C6952F]/20 text-[#E5BE6A]" },
 ];
 
-function RoleTabs({ value, onChange }) {
-    return (
-        <div className="grid grid-cols-3 gap-1.5 rounded-[10px] bg-[#F4F2EC] border border-[#E8E4D9] p-1">
-            {ROLES.map((role) => {
-                const Icon = role.icon;
-                const active = value === role.id;
-                return (
-                    <button
-                        key={role.id}
-                        type="button"
-                        onClick={() => onChange(role.id)}
-                        aria-pressed={active}
-                        className={`flex flex-col items-center justify-center gap-1 rounded-[7px] px-2 py-2 text-[11px] font-medium transition-colors ${
-                            active
-                                ? "bg-[#0F1B33] text-white shadow-sm"
-                                : "text-[#6B7280] hover:text-[#0F1B33]"
-                        }`}
-                    >
-                        <Icon
-                            className={`h-3.5 w-3.5 ${
-                                active ? "text-[#C6952F]" : "text-[#9CA3AF]"
-                            }`}
-                        />
-                        <span className="text-center leading-tight">{role.label}</span>
-                    </button>
-                );
-            })}
-        </div>
-    );
-}
+function BrandPanel() {
+  return (
+    <aside className="relative hidden flex-col justify-between overflow-hidden bg-[#0F1B33] px-12 py-10 lg:flex lg:w-[46%]">
+      {/* texture */}
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 56px), repeating-linear-gradient(90deg, #fff 0px, #fff 1px, transparent 1px, transparent 56px)",
+        }}
+      />
+      <div
+        className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(198,149,47,0.28) 0%, transparent 70%)" }}
+      />
+      <div
+        className="pointer-events-none absolute -bottom-40 -left-20 h-96 w-96 rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(36,99,212,0.22) 0%, transparent 70%)" }}
+      />
 
-// ---------------------------------------------------------------------------
-// Left brand panel — shared between Login and Signup
-// ---------------------------------------------------------------------------
-function BrandPanel({ heading, sub, features }) {
-    return (
-        <div className="hidden lg:flex lg:w-[46%] relative bg-[#0F1B33] flex-col justify-between overflow-hidden px-12 py-10">
-            <div
-                className="absolute inset-0 opacity-[0.07] pointer-events-none"
-                style={{
-                    backgroundImage:
-                        "repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 56px), repeating-linear-gradient(90deg, #fff 0px, #fff 1px, transparent 1px, transparent 56px)",
-                }}
-            />
-            <div
-                className="absolute -right-24 -top-24 w-72 h-72 rounded-full pointer-events-none"
-                style={{
-                    background:
-                        "radial-gradient(circle, rgba(198,149,47,0.25) 0%, transparent 70%)",
-                }}
-            />
+      <div className="relative z-10 flex items-center gap-2.5">
+        <Logo />
+      </div>
 
-            <div className="relative z-10 flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-[6px] bg-[#C6952F] flex items-center justify-center font-serif text-[#0F1B33] font-bold text-sm">
-                    I
-                </div>
-                <span className="text-white font-medium text-[15px] tracking-tight">
-                    InstituteOS
-                </span>
-            </div>
+      <div className="relative z-10 max-w-md">
+        <h2 className="font-serif text-[2.5rem] leading-[1.12] tracking-tight text-white">
+          Your whole school,
+          <br />
+          <span className="text-[#E5BE6A]">in one place.</span>
+        </h2>
+        <p className="mt-4 text-[14.5px] leading-relaxed text-[#AEB6C7]">
+          Attendance, homework, exams and parent communication — for principals, teachers, office staff, parents and
+          students.
+        </p>
 
-            <div className="relative z-10 max-w-sm">
-                <h1 className="font-serif text-white text-[2.35rem] leading-[1.15] tracking-tight">
-                    {heading}
-                </h1>
-                <p className="text-[#AEB6C7] text-[14px] mt-4 leading-relaxed">
-                    {sub}
-                </p>
-                <ul className="mt-7 space-y-2.5">
-                    {features.map((item) => (
-                        <li
-                            key={item}
-                            className="flex items-center gap-2.5 text-[13px] text-[#D7DCE6]"
-                        >
-                            <CheckCircle2 className="h-3.5 w-3.5 text-[#C6952F] shrink-0" />
-                            {item}
-                        </li>
-                    ))}
-                </ul>
-            </div>
+        {/* product preview */}
+        <ul className="mt-9 space-y-3" aria-hidden="true">
+          {PREVIEW.map(({ icon: Icon, title, text, tone }, i) => (
+            <li
+              key={title}
+              className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 backdrop-blur-sm"
+              style={{ marginLeft: `${i * 18}px` }}
+            >
+              <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", tone)}>
+                <Icon className="h-[18px] w-[18px]" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[13px] font-semibold text-white">{title}</span>
+                <span className="block truncate text-[12px] text-[#9AA4B8]">{text}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-            <p className="relative z-10 text-[12px] text-[#7C859B] border-t border-white/10 pt-4">
-                Built with school administrators, not just for them.
-            </p>
-        </div>
-    );
-}
-
-function MobileLogo() {
-    return (
-        <div className="flex lg:hidden items-center gap-2.5 mb-8">
-            <div className="h-8 w-8 rounded-[6px] bg-[#0F1B33] flex items-center justify-center font-serif text-[#C6952F] font-bold text-sm">
-                I
-            </div>
-            <span className="text-[#0F1B33] font-medium text-[15px]">
-                InstituteOS
-            </span>
-        </div>
-    );
-}
-
-const inputClass =
-    "w-full px-3 py-2.5 text-[13.5px] rounded-[8px] border border-[#E4E1D8] bg-white placeholder:text-[#A8AAB0] focus:outline-none focus:ring-2 focus:ring-[#C6952F]/40 focus:border-[#C6952F] transition-colors";
-
-// ---------------------------------------------------------------------------
-// Login page
-// ---------------------------------------------------------------------------
-function LoginPage({ onSignUpClick }) {
-    const [role, setRole] = useState("teacher");
-    const [showPassword, setShowPassword] = useState(false);
-    const [rememberMe, setRememberMe] = useState(false);
-    const [form, setForm] = useState({ schoolCode: "", email: "", password: "" });
-    const [isLoading, setIsLoading] = useState(false);
-
-    const handleChange = (field) => (e) =>
-        setForm((prev) => ({ ...prev, [field]: e.target.value }));
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!form.schoolCode || !form.email || !form.password) return;
-
-        setIsLoading(true);
-        try {
-            // TODO: connect your login API here, including `role`
-            console.log("Sign in submitted:", { ...form, role, rememberMe });
-        } catch (error) {
-            console.error("Login failed:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <div className="min-h-screen w-full overflow-hidden flex bg-[#FBF9F3] font-[Inter,system-ui,sans-serif]">
-            <BrandPanel
-                heading={
-                    <>
-                        One school.
-                        <br />
-                        One platform.
-                        <br />
-                        Complete control.
-                    </>
-                }
-                sub="From classroom attendance to exam results and fee collection, InstituteOS brings your entire school together."
-                features={[
-                    "Student & teacher management",
-                    "Attendance & timetable",
-                    "Exams & report cards",
-                    "Fees & parent communication",
-                ]}
-            />
-
-            <div className="w-full lg:w-[54%] min-h-screen flex items-center justify-center px-6 sm:px-10 py-10">
-                <div className="w-full max-w-[360px]">
-                    <MobileLogo />
-
-                    <div>
-                        <h2 className="font-serif text-[1.6rem] text-[#0F1B33] leading-tight">
-                            Welcome back
-                        </h2>
-                        <p className="text-[13px] text-[#6B7280] mt-1">
-                            Your school, all in one place.
-                        </p>
-                    </div>
-
-                    {/* Role tabs */}
-                    <div className="mt-5">
-                        <p className="text-[12px] font-medium text-[#374151] mb-1.5">
-                            Signing in as
-                        </p>
-                        <RoleTabs value={role} onChange={setRole} />
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
-                        <div>
-                            <label
-                                htmlFor="schoolCode"
-                                className="block text-[12px] font-medium text-[#374151] mb-1.5"
-                            >
-                                School ID / Code
-                            </label>
-                            <input
-                                id="schoolCode"
-                                name="schoolCode"
-                                type="text"
-                                autoComplete="organization"
-                                placeholder="e.g. DPS-NGP"
-                                value={form.schoolCode}
-                                onChange={handleChange("schoolCode")}
-                                required
-                                className={inputClass}
-                            />
-                        </div>
-
-                        <div>
-                            <label
-                                htmlFor="email"
-                                className="block text-[12px] font-medium text-[#374151] mb-1.5"
-                            >
-                                Email / Username
-                            </label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-[#A8AAB0]" />
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="text"
-                                    autoComplete="username"
-                                    placeholder="name@school.edu"
-                                    value={form.email}
-                                    onChange={handleChange("email")}
-                                    required
-                                    className={`${inputClass} pl-9 pr-3`}
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <div className="flex items-center justify-between mb-1.5">
-                                <label
-                                    htmlFor="password"
-                                    className="block text-[12px] font-medium text-[#374151]"
-                                >
-                                    Password
-                                </label>
-                                <button
-                                    type="button"
-                                    className="text-[12px] text-[#0F1B33] font-medium hover:text-[#C6952F] transition-colors"
-                                    onClick={() => console.log("Forgot password")}
-                                >
-                                    Forgot password?
-                                </button>
-                            </div>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-[#A8AAB0]" />
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type={showPassword ? "text" : "password"}
-                                    autoComplete="current-password"
-                                    placeholder="Enter your password"
-                                    value={form.password}
-                                    onChange={handleChange("password")}
-                                    required
-                                    className={`${inputClass} pl-9 pr-10`}
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword((prev) => !prev)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A8AAB0] hover:text-[#374151] transition-colors"
-                                    aria-label={showPassword ? "Hide password" : "Show password"}
-                                >
-                                    {showPassword ? (
-                                        <EyeOff className="h-[15px] w-[15px]" />
-                                    ) : (
-                                        <Eye className="h-[15px] w-[15px]" />
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-
-                        <label className="flex items-center gap-2 text-[12.5px] text-[#6B7280] cursor-pointer select-none pt-0.5">
-                            <input
-                                type="checkbox"
-                                checked={rememberMe}
-                                onChange={(e) => setRememberMe(e.target.checked)}
-                                className="h-3.5 w-3.5 rounded border-[#D1D5DB] text-[#0F1B33] focus:ring-[#C6952F]"
-                            />
-                            <span>Stay signed in on this device</span>
-                        </label>
-
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full flex items-center justify-center gap-2 bg-[#0F1B33] hover:bg-[#16274A] disabled:opacity-60 disabled:cursor-not-allowed text-white text-[13.5px] font-medium py-2.5 rounded-[8px] transition-colors mt-1"
-                        >
-                            {isLoading ? (
-                                <>
-                                    <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                                    Signing in...
-                                </>
-                            ) : (
-                                <>
-                                    Sign in
-                                    <ArrowRight className="h-[15px] w-[15px]" />
-                                </>
-                            )}
-                        </button>
-                    </form>
-
-                    {/* Sign up prompt */}
-                    <p className="mt-5 text-center text-[12.5px] text-[#6B7280]">
-                        New to InstituteOS?{" "}
-                        <button
-                            type="button"
-                            onClick={onSignUpClick}
-                            className="font-medium text-[#0F1B33] hover:text-[#C6952F] transition-colors"
-                        >
-                            Create an account
-                        </button>
-                    </p>
-
-                    <div className="mt-5 rounded-[8px] bg-[#F4F2EC] border border-[#E8E4D9] px-3 py-2.5">
-                        <p className="text-[11.5px] text-[#7B7F87] text-center leading-relaxed">
-                            Your access is automatically configured based on your role and
-                            school permissions.
-                        </p>
-                    </div>
-
-                    <div className="flex items-center justify-center gap-3 mt-6 text-[11px] text-[#B0B4BE]">
-                        <button type="button" className="hover:text-[#6B7280] transition-colors">
-                            Privacy Policy
-                        </button>
-                        <span>&middot;</span>
-                        <button type="button" className="hover:text-[#6B7280] transition-colors">
-                            Terms of Service
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ---------------------------------------------------------------------------
-// Sign up page
-// ---------------------------------------------------------------------------
-function SignUpPage({ onBackClick }) {
-    const [role, setRole] = useState("teacher");
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirm, setShowConfirm] = useState(false);
-    const [form, setForm] = useState({
-        fullName: "",
-        schoolCode: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-    });
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState("");
-
-    const handleChange = (field) => (e) =>
-        setForm((prev) => ({ ...prev, [field]: e.target.value }));
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError("");
-
-        if (
-            !form.fullName ||
-            !form.schoolCode ||
-            !form.email ||
-            !form.password ||
-            !form.confirmPassword
-        ) {
-            return;
-        }
-
-        if (form.password !== form.confirmPassword) {
-            setError("Passwords don't match. Please re-enter.");
-            return;
-        }
-
-        setIsLoading(true);
-        try {
-            // TODO: connect your signup API here, including `role`
-            console.log("Sign up submitted:", { ...form, role });
-        } catch (err) {
-            console.error("Signup failed:", err);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <div className="min-h-screen w-full overflow-hidden flex bg-[#FBF9F3] font-[Inter,system-ui,sans-serif]">
-            <BrandPanel
-                heading={
-                    <>
-                        Get your school
-                        <br />
-                        set up in
-                        <br />
-                        minutes.
-                    </>
-                }
-                sub="Create an account to manage classes, track attendance, and stay connected — whichever role you play."
-                features={[
-                    "Free for your first 30 days",
-                    "No setup fee for schools",
-                    "Import existing student records",
-                    "Role-based access from day one",
-                ]}
-            />
-
-            <div className="w-full lg:w-[54%] min-h-screen flex items-center justify-center px-6 sm:px-10 py-10">
-                <div className="w-full max-w-[360px]">
-                    <div className="flex items-center justify-between mb-8">
-                        <MobileLogo />
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={onBackClick}
-                        className="flex items-center gap-1.5 text-[12.5px] font-medium text-[#6B7280] hover:text-[#0F1B33] transition-colors mb-5"
-                    >
-                        <ArrowLeft className="h-[14px] w-[14px]" />
-                        Back to sign in
-                    </button>
-
-                    <div>
-                        <h2 className="font-serif text-[1.6rem] text-[#0F1B33] leading-tight">
-                            Create your account
-                        </h2>
-                        <p className="text-[13px] text-[#6B7280] mt-1">
-                            Tell us who you are and which school you belong to.
-                        </p>
-                    </div>
-
-                    <div className="mt-5">
-                        <p className="text-[12px] font-medium text-[#374151] mb-1.5">
-                            I am a
-                        </p>
-                        <RoleTabs value={role} onChange={setRole} />
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
-                        <div>
-                            <label
-                                htmlFor="fullName"
-                                className="block text-[12px] font-medium text-[#374151] mb-1.5"
-                            >
-                                Full name
-                            </label>
-                            <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-[#A8AAB0]" />
-                                <input
-                                    id="fullName"
-                                    name="fullName"
-                                    type="text"
-                                    autoComplete="name"
-                                    placeholder="e.g. Anjali Deshmukh"
-                                    value={form.fullName}
-                                    onChange={handleChange("fullName")}
-                                    required
-                                    className={`${inputClass} pl-9 pr-3`}
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label
-                                htmlFor="signupSchoolCode"
-                                className="block text-[12px] font-medium text-[#374151] mb-1.5"
-                            >
-                                School ID / Code
-                            </label>
-                            <input
-                                id="signupSchoolCode"
-                                name="schoolCode"
-                                type="text"
-                                autoComplete="organization"
-                                placeholder="e.g. DPS-NGP"
-                                value={form.schoolCode}
-                                onChange={handleChange("schoolCode")}
-                                required
-                                className={inputClass}
-                            />
-                            <p className="mt-1.5 text-[10.5px] text-[#9CA3AF]">
-                                Enter the unique code provided by your school.
-                            </p>
-                        </div>
-
-                        <div>
-                            <label
-                                htmlFor="signupEmail"
-                                className="block text-[12px] font-medium text-[#374151] mb-1.5"
-                            >
-                                Email
-                            </label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-[#A8AAB0]" />
-                                <input
-                                    id="signupEmail"
-                                    name="email"
-                                    type="email"
-                                    autoComplete="email"
-                                    placeholder="name@school.edu"
-                                    value={form.email}
-                                    onChange={handleChange("email")}
-                                    required
-                                    className={`${inputClass} pl-9 pr-3`}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3">
-                            <div>
-                                <label
-                                    htmlFor="signupPassword"
-                                    className="block text-[12px] font-medium text-[#374151] mb-1.5"
-                                >
-                                    Password
-                                </label>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-[#A8AAB0]" />
-                                    <input
-                                        id="signupPassword"
-                                        name="password"
-                                        type={showPassword ? "text" : "password"}
-                                        autoComplete="new-password"
-                                        placeholder="Min. 8 characters"
-                                        value={form.password}
-                                        onChange={handleChange("password")}
-                                        required
-                                        className={`${inputClass} pl-9 pr-8`}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword((prev) => !prev)}
-                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A8AAB0] hover:text-[#374151] transition-colors"
-                                        aria-label={showPassword ? "Hide password" : "Show password"}
-                                    >
-                                        {showPassword ? (
-                                            <EyeOff className="h-[14px] w-[14px]" />
-                                        ) : (
-                                            <Eye className="h-[14px] w-[14px]" />
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label
-                                    htmlFor="confirmPassword"
-                                    className="block text-[12px] font-medium text-[#374151] mb-1.5"
-                                >
-                                    Confirm
-                                </label>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-[15px] w-[15px] text-[#A8AAB0]" />
-                                    <input
-                                        id="confirmPassword"
-                                        name="confirmPassword"
-                                        type={showConfirm ? "text" : "password"}
-                                        autoComplete="new-password"
-                                        placeholder="Re-enter"
-                                        value={form.confirmPassword}
-                                        onChange={handleChange("confirmPassword")}
-                                        required
-                                        className={`${inputClass} pl-9 pr-8`}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowConfirm((prev) => !prev)}
-                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A8AAB0] hover:text-[#374151] transition-colors"
-                                        aria-label={showConfirm ? "Hide password" : "Show password"}
-                                    >
-                                        {showConfirm ? (
-                                            <EyeOff className="h-[14px] w-[14px]" />
-                                        ) : (
-                                            <Eye className="h-[14px] w-[14px]" />
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {error && (
-                            <p className="text-[12px] text-[#B3453D] bg-[#FBEDEB] border border-[#F3D3CF] rounded-[7px] px-3 py-2">
-                                {error}
-                            </p>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full flex items-center justify-center gap-2 bg-[#0F1B33] hover:bg-[#16274A] disabled:opacity-60 disabled:cursor-not-allowed text-white text-[13.5px] font-medium py-2.5 rounded-[8px] transition-colors mt-1"
-                        >
-                            {isLoading ? (
-                                <>
-                                    <span className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
-                                    Creating account...
-                                </>
-                            ) : (
-                                <>
-                                    Create account
-                                    <ArrowRight className="h-[15px] w-[15px]" />
-                                </>
-                            )}
-                        </button>
-                    </form>
-
-                    <p className="mt-5 text-center text-[12.5px] text-[#6B7280]">
-                        Already have an account?{" "}
-                        <button
-                            type="button"
-                            onClick={onBackClick}
-                            className="font-medium text-[#0F1B33] hover:text-[#C6952F] transition-colors"
-                        >
-                            Sign in
-                        </button>
-                    </p>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// ---------------------------------------------------------------------------
-// Root — toggles between Login and Signup
-// ---------------------------------------------------------------------------
-export default function AuthPages() {
-    const [view, setView] = useState("login"); // "login" | "signup"
-
-    if (view === "signup") {
-        return <SignUpPage onBackClick={() => setView("login")} />;
-    }
-    return <LoginPage onSignUpClick={() => setView("signup")} />;
+      <p className="relative z-10 border-t border-white/10 pt-4 text-[12px] text-[#7C859B]">
+        Built with school administrators, not just for them.
+      </p>
+    </aside>
+  );
 }

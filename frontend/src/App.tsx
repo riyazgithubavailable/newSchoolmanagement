@@ -2,224 +2,152 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route, Navigate, HashRouter, useNavigate, useLocation } from "react-router-dom";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { queryClient } from "@/lib/queryClient";
+import { PublicOnly, RequireClassTeacher, RequireLogin, RequireRole } from "@/routes/guards";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import ResetPassword from "@/pages/auth/ResetPassword";
+import ChangePassword from "@/pages/auth/ChangePassword";
+import AppLayouts from "@/layout/AppLayouts";
 
 import Login from "@/pages/Login";
-
-
 import NotFound from "@/pages/NotFound";
 
-import { queryClient } from "./lib/queryClient";
-import { canAccessRoute } from "./utils/routePermission";
-import { getHomeRoute } from "./utils/getRoutePermission";
-import TeacherDashboard from "./pages/DashboardsUser/TeacherDashboard";
-import ParentDashboard from "./pages/DashboardsUser/ParentDashboard";
-import AdminDashboard from "./pages/DashboardsUser/AdminDashboard";
-import TeacherTimetable from "./pages/TeacherSection/TeacherTimetable";
-import TeacherAttendance from "./components/teacher/TeacherAttendance";
-import TeacherAttendanceHistory from "./components/teacher/TeacherAttendanceHistory";
-import TeacherAssignments from "./components/teacher/TeacherAssignments";
-import CreateAssignment from "./components/teacher/CreateAssignment";
-import AssignmentSubmissions from "./components/teacher/AssignmentSubmissions";
-import TeacherExamSchedule from "./components/teacher/TeacherExamSchedule";
-import TeacherEnterMarks from "./components/teacher/TeacherEnterMarks";
-import TeacherResults from "./components/teacher/TeacherResults";
-import TeacherStudents from "./components/teacher/TeacherStudents";
-import TeacherStudyMaterials from "./components/teacher/TeacherStudyMaterials";
-import TeacherNotices from "./components/teacher/TeacherNotices";
-import TeacherProfile from "./components/teacher/TeacherProfile";
-import TeacherClassesPage from "./pages/TeacherSection/TeacherClassesPage";
-// function ProtectedRoute({ children }: { children: React.ReactNode }) {
-//     const { isAuthenticated, logout, profileData } = useAuth();
-//     const { token } = useToken()
-//     const navigate = useNavigate();
-//     const location = useLocation();
-//     //     useEffect(() => {
-//     //   if (import.meta.env.DEV) {
-//     //     localStorage.removeItem("dwpps_token");
-//     //   }
-//     // }, []);
-//     // useEffect(() => {
-//     //     if (!token) return;
+/* Dashboards */
+import TeacherDashboard from "@/pages/DashboardsUser/TeacherDashboard";
+import ParentDashboard from "@/pages/DashboardsUser/ParentDashboard";
+import StudentDashboard from "@/pages/DashboardsUser/StudentDashboard";
 
-//     //     try {
-//     //         const decoded: any = jwtDecode(token);
-//     //         const expiryTime = decoded.exp * 1000 - Date.now();
+/* Principal & office admin */
+import SchoolDashboard from "@/pages/school/SchoolDashboard";
+import SchoolSetup from "@/pages/school/SchoolSetup";
+import StaffPage from "@/pages/school/StaffPage";
+import AssignmentsPage from "@/pages/school/AssignmentsPage";
 
-//     //         if (expiryTime <= 0) {
-//     //             clearAuthStorage();
-//     //             logout();
-//     //             navigate("/login", { replace: true });
-//     //             return;
-//     //         }
+/* Teacher */
+import TeacherTimetable from "@/pages/TeacherSection/TeacherTimetable";
+import TeacherClassesPage from "@/pages/TeacherSection/TeacherClassesPage";
+import TeacherAttendance from "@/components/teacher/TeacherAttendance";
+import TeacherAttendanceHistory from "@/components/teacher/TeacherAttendanceHistory";
+import TeacherAssignments from "@/components/teacher/TeacherAssignments";
+import CreateAssignment from "@/components/teacher/CreateAssignment";
+import AssignmentSubmissions from "@/components/teacher/AssignmentSubmissions";
+import TeacherExamSchedule from "@/components/teacher/TeacherExamSchedule";
+import TeacherEnterMarks from "@/components/teacher/TeacherEnterMarks";
+import TeacherResults from "@/components/teacher/TeacherResults";
+import TeacherStudents from "@/components/teacher/TeacherStudents";
+import TeacherStudyMaterials from "@/components/teacher/TeacherStudyMaterials";
+import TeacherNotices from "@/components/teacher/TeacherNotices";
+import TeacherProfile from "@/components/teacher/TeacherProfile";
+import TeacherMyAttendance from "@/components/teacher/TeacherMyAttendance";
+import TeacherLeave from "@/components/teacher/TeacherLeave";
+import TeacherMessages from "@/components/teacher/TeacherMessages";
 
-//     //         const timer = setTimeout(() => {
-//     //             clearAuthStorage();
-//     //             logout();
-//     //             navigate("/login", { replace: true });
-//     //         }, expiryTime);
-
-//     //         return () => clearTimeout(timer);
-//     //     } catch {
-//     //         logout();
-//     //         navigate("/login");
-//     //     }
-//     // }, [token, logout, navigate]);
-
-//     if (!isAuthenticated) {
-//         return <Navigate to="/login" replace />;
-//     }
-
-
-//     const role = profileData?.roleName ?? "";
-
-//     const isAllowed = canAccessRoute(location.pathname, role);
-
-//     if (!isAllowed) {
-//         return <Navigate to={getHomeRoute(role)} replace />;
-//     }
-//     return <>{children}</>;
-// }
-
-// function PublicLoginRoute({ component: Component = Login }: { component?: React.ComponentType }) {
-//     const { isAuthenticated, profileData } = useAuth();
-//     // ⛔ wait for profile data
-//     if (isAuthenticated && !profileData) {
-//         return <div className="text-white">Loading...</div>; // ya loader dikha
-//     }
-
-//     if (!isAuthenticated) {
-//         return <Component />;
-//     }
-
-//     const homeRoute = getHomeRoute(profileData?.roleName);
-//     return <Navigate to={homeRoute} replace />;
-// }
+/* Class teacher */
+import ClassOverview from "@/components/teacher/classTeacher/ClassOverview";
+import StudentProgressPage from "@/components/teacher/classTeacher/StudentProgress";
+import ParentCommunication from "@/components/teacher/classTeacher/ParentCommunication";
 
 const AppRoutes = () => (
-    <Routes>
-        {/* Public */}
-        {/* <Route path="/" element={<PublicLoginRoute />} />
-        <Route path="/login" element={<PublicLoginRoute component={Login} />} /> */}
-        {/* <Route path="/admin-login" element={<PublicLoginRoute component={AdminLogin} />} /> */}
-        {/* Dashboard */}
-        <Route
-            path="/"
-            element={
-                <Login />
-            }
-        />
-    
-        <Route
-            path="/teacher/dashboard"
-            element={
+  <Routes>
+    {/* Public */}
+    <Route element={<PublicOnly />}>
+      <Route path="/" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+    </Route>
+    <Route path="/login" element={<Navigate to="/" replace />} />
+    {/* opened from the email link — works whether or not someone is signed in */}
+    <Route path="/reset-password" element={<ResetPassword />} />
 
-                <TeacherDashboard />
+    {/* Any signed-in user (forced after a temporary password) */}
+    <Route element={<RequireLogin />}>
+      <Route path="/change-password" element={<ChangePassword />} />
+    </Route>
 
-            }
-        />
-        <Route
-            path="/teacher/timetable"
-            element={<TeacherTimetable />}
-        />
-          <Route path="/teacher/classes" element={<TeacherClassesPage />} />
+    {/* Teacher */}
+    <Route element={<RequireRole roles={["TEACHER"]} />}>
+      <Route element={<AppLayouts />}>
+        <Route path="/teacher" element={<Navigate to="/teacher/dashboard" replace />} />
+        <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
+        <Route path="/teacher/timetable" element={<TeacherTimetable />} />
+        <Route path="/teacher/classes" element={<TeacherClassesPage />} />
 
+        <Route path="/teacher/attendance/mark" element={<TeacherAttendance />} />
+        <Route path="/teacher/attendance/history" element={<TeacherAttendanceHistory />} />
 
-  <Route
-    path="/teacher/attendance/mark"
-    element={<TeacherAttendance />}
-  />
+        <Route path="/teacher/assignments" element={<TeacherAssignments />} />
+        <Route path="/teacher/assignments/create" element={<CreateAssignment />} />
+        <Route path="/teacher/assignments/submissions" element={<AssignmentSubmissions />} />
 
-  <Route
-    path="/teacher/attendance/history"
-    element={<TeacherAttendanceHistory />}
-  />
+        <Route path="/teacher/exams/schedule" element={<TeacherExamSchedule />} />
+        <Route path="/teacher/exams/marks" element={<TeacherEnterMarks />} />
+        <Route path="/teacher/exams/results" element={<TeacherResults />} />
 
-  <Route
-    path="/teacher/assignments"
-    element={<TeacherAssignments />}
-  />
+        <Route path="/teacher/students" element={<TeacherStudents />} />
+        <Route path="/teacher/study-materials" element={<TeacherStudyMaterials />} />
+        <Route path="/teacher/notices" element={<TeacherNotices />} />
+        <Route path="/teacher/messages" element={<TeacherMessages />} />
+        <Route path="/teacher/my-attendance" element={<TeacherMyAttendance />} />
+        <Route path="/teacher/leave" element={<TeacherLeave />} />
+        <Route path="/teacher/profile" element={<TeacherProfile />} />
 
-  <Route
-    path="/teacher/assignments/create"
-    element={<CreateAssignment />}
-  />
+        <Route element={<RequireClassTeacher />}>
+          <Route path="/teacher/class-teacher" element={<Navigate to="/teacher/class-teacher/overview" replace />} />
+          <Route path="/teacher/class-teacher/overview" element={<ClassOverview />} />
+          <Route path="/teacher/class-teacher/progress" element={<StudentProgressPage />} />
+          <Route path="/teacher/class-teacher/parents" element={<ParentCommunication />} />
+        </Route>
+      </Route>
+    </Route>
 
-  <Route
-    path="/teacher/assignments/submissions"
-    element={<AssignmentSubmissions />}
-  />
-
-  <Route
-    path="/teacher/exams/schedule"
-    element={<TeacherExamSchedule />}
-  />
-
-  <Route
-    path="/teacher/exams/marks"
-    element={<TeacherEnterMarks />}
-  />
-
-  <Route
-    path="/teacher/exams/results"
-    element={<TeacherResults />}
-  />
-
-  <Route
-    path="/teacher/students"
-    element={<TeacherStudents />}
-  />
-
-  <Route
-    path="/teacher/study-materials"
-    element={<TeacherStudyMaterials />}
-  />
-
-  <Route
-    path="/teacher/notices"
-    element={<TeacherNotices />}
-  />
-
-  <Route
-    path="/teacher/profile"
-    element={<TeacherProfile />}
-  />
-        <Route
-            path="/parent/dashboard"
-            element={
-
-                <ParentDashboard />
-
-            }
-        />
-        <Route
-            path="/admin/dashboard"
-            element={
-
-                <AdminDashboard />
-
-            }
-        />
+    {/* Principal and office admin share the school management pages */}
+    {(["PRINCIPAL", "ADMIN"] as const).map((role) => {
+      const base = role === "PRINCIPAL" ? "/principal" : "/admin";
+      return (
+        <Route key={role} element={<RequireRole roles={[role]} />}>
+          <Route element={<AppLayouts />}>
+            <Route path={`${base}/dashboard`} element={<SchoolDashboard />} />
+            <Route path={`${base}/setup`} element={<SchoolSetup />} />
+            <Route path={`${base}/staff`} element={<StaffPage />} />
+            <Route path={`${base}/assignments`} element={<AssignmentsPage />} />
+          </Route>
+        </Route>
+      );
+    })}
 
 
-        <Route path="*" element={<NotFound />} />
-    </Routes>
+    {/* Parent */}
+    <Route element={<RequireRole roles={["PARENT"]} />}>
+      <Route element={<AppLayouts />}>
+        <Route path="/parent/dashboard" element={<ParentDashboard />} />
+      </Route>
+    </Route>
+
+    {/* Student */}
+    <Route element={<RequireRole roles={["STUDENT"]} />}>
+      <Route element={<AppLayouts />}>
+        <Route path="/student/dashboard" element={<StudentDashboard />} />
+      </Route>
+    </Route>
+
+    <Route path="*" element={<NotFound />} />
+  </Routes>
 );
 
 const App = () => (
-    <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <HashRouter>
-                <AuthProvider>
-                    <AppRoutes />
-                </AuthProvider>
-            </HashRouter>
-        </TooltipProvider>
-    </QueryClientProvider>
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner richColors position="top-right" />
+      <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </HashRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
 );
 
 export default App;

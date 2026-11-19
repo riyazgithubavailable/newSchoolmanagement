@@ -1,5 +1,6 @@
 import * as React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Bell, ChevronDown, Home, KeyRound, LogOut, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
 
 import {
   Breadcrumb,
@@ -9,22 +10,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-
 import { Button } from "@/components/ui/button";
-
-import {
-  ChevronDown,
-  HelpCircle,
-  Home,
-  LogOut,
-  PanelLeftClose,
-  PanelLeftOpen,
-  User,
-} from "lucide-react";
-
-import { cn } from "@/lib/utils";
-import { getInitials } from "@/lib/nameUtils";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,98 +18,73 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
+import { cn } from "@/lib/utils";
+import { getInitials } from "@/lib/nameUtils";
 import { useAuth } from "@/contexts/AuthContext";
+import { getHomeRoute, ROLE_LABELS } from "@/config/roles";
+import { getMenuItems, type MenuItem } from "@/config/menu";
+import { useUnreadNoticeCount } from "@/hooks/useTeacherQueries";
 import ConfirmDialog from "@/utils/ConfirmDialog";
 import ProfileDialog from "@/utils/ProfileDialog";
 
-type AuthUser = {
-  name?: string;
-  fullName?: string;
-  roleName?: string;
-  email?: string;
-};
-
-interface BreadcrumbNavbarProps {
+interface HeaderProps {
   className?: string;
   sidebarCollapsed?: boolean;
   onToggleSidebar?: () => void;
 }
 
-function titleCase(value: string) {
-  return value
-    .replace(/[-_]/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+const titleCase = (value: string) => value.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+/** path → label map built from the menu, so breadcrumbs show real names */
+function buildLabelMap(items: MenuItem[], map: Record<string, string> = {}) {
+  for (const i of items) {
+    if (i.to) map[i.to] = i.label;
+    if (i.children) buildLabelMap(i.children, map);
+  }
+  return map;
 }
 
-export default function Headers({
-  className,
-  sidebarCollapsed = false,
-  onToggleSidebar,
-}: BreadcrumbNavbarProps) {
+function NoticeBell() {
+  const unread = useUnreadNoticeCount();
+  return (
+    <Link
+      to="/teacher/notices"
+      aria-label={`Notices${unread ? `, ${unread} unread` : ""}`}
+      className="relative rounded-full p-1.5 text-slate-500 hover:bg-slate-100"
+    >
+      <Bell size={17} />
+      {unread > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+          {unread}
+        </span>
+      )}
+    </Link>
+  );
+}
+
+export default function Headers({ className, sidebarCollapsed = false, onToggleSidebar }: HeaderProps) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-
-  const { user, logout } = useAuth() as {
-    user?: AuthUser;
-    logout: () => void;
-  };
+  const { user, logout } = useAuth();
 
   const [logoutOpen, setLogoutOpen] = React.useState(false);
   const [profileOpen, setProfileOpen] = React.useState(false);
 
-  /*
-   * Don't show navbar on login page
-   */
+  const role = user?.role ?? "TEACHER";
+  const homeRoute = getHomeRoute(role);
+  const labels = React.useMemo(() => buildLabelMap(getMenuItems(role, true)), [role]);
 
-  if (pathname === "/") {
-    return null;
-  }
-
-  /*
-   * Breadcrumbs
-   */
-
+  // "/teacher/class-teacher/progress" → [class-teacher, progress] (role prefix dropped)
   const segments = pathname.split("/").filter(Boolean);
-
-  const crumbs = segments.map((segment, index) => {
-    const to =
-      "/" + segments.slice(0, index + 1).join("/");
-
-    return {
-      to,
-      label: titleCase(segment),
-    };
+  const crumbs = segments.slice(1).map((segment, index) => {
+    const to = "/" + segments.slice(0, index + 2).join("/");
+    return { to, label: labels[to] ?? titleCase(segment) };
   });
-
-  const isHome =
-    pathname === "/" ||
-    pathname === "/dashboard" ||
-    pathname === "/teacher/dashboard";
-
-  /*
-   * User information
-   */
-
-  const displayName =
-    user?.fullName ||
-    user?.name ||
-    "Teacher";
-
-  const roleName =
-    user?.roleName ||
-    "Teacher";
-
-  /*
-   * Logout
-   */
+  const isHome = pathname === homeRoute;
 
   const handleLogoutConfirmed = () => {
     logout();
-
-    navigate("/", {
-      replace: true,
-    });
+    navigate("/", { replace: true });
   };
 
   return (
@@ -131,81 +92,45 @@ export default function Headers({
       <header
         className={cn(
           "sticky top-0 z-20 w-full border-b bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70",
-          className
+          className,
         )}
       >
         <div className="flex items-center justify-between gap-2 px-3 py-3 sm:px-5">
-          {/* ================= LEFT ================= */}
-
+          {/* Left */}
           <div className="flex min-w-0 flex-1 items-center gap-2">
-            {/* Sidebar Toggle */}
-
             {onToggleSidebar && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onToggleSidebar}
-                aria-label="Toggle sidebar"
-              >
-                {sidebarCollapsed ? (
-                  <PanelLeftOpen className="h-5 w-5" />
-                ) : (
-                  <PanelLeftClose className="h-5 w-5" />
-                )}
+              <Button variant="ghost" size="icon" onClick={onToggleSidebar} aria-label="Toggle sidebar">
+                {sidebarCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
               </Button>
             )}
-
-            {/* Breadcrumb */}
 
             <div className="min-w-0 flex-1">
               <Breadcrumb className="overflow-hidden">
                 <BreadcrumbList>
-                  {/* Home */}
-
                   <BreadcrumbItem>
                     <BreadcrumbLink asChild>
-                      <button
-                        type="button"
-                        // onClick={() =>
-                        //   navigate("/teacher/dashboard")
-                        // }
-                        className="flex items-center gap-2"
-                      >
+                      <Link to={homeRoute} className="flex items-center gap-2">
                         <Home className="h-4 w-4" />
-                        <span className="hidden sm:inline">
-                          Home
-                        </span>
-                      </button>
+                        <span className="hidden sm:inline">Home</span>
+                      </Link>
                     </BreadcrumbLink>
                   </BreadcrumbItem>
 
-                  {/* Other routes */}
-
                   {!isHome &&
                     crumbs.map((crumb, index) => {
-                      const isLast =
-                        index === crumbs.length - 1;
-
+                      const isLast = index === crumbs.length - 1;
+                      const isRoute = !!labels[crumb.to];
                       return (
                         <React.Fragment key={crumb.to}>
                           <BreadcrumbSeparator />
-
                           <BreadcrumbItem>
-                            {isLast ? (
-                              <BreadcrumbPage>
+                            {isLast || !isRoute ? (
+                              <BreadcrumbPage className={cn(!isLast && "text-muted-foreground")}>
                                 {crumb.label}
                               </BreadcrumbPage>
                             ) : (
                               <BreadcrumbLink asChild>
-                                <button
-                                  type="button"
-                                  className="cursor-text"
-                                  // onClick={() =>
-                                  //   navigate(crumb.to)
-                                  // }
-                                >
-                                  {crumb.label}
-                                </button>
+                                <Link to={crumb.to}>{crumb.label}</Link>
                               </BreadcrumbLink>
                             )}
                           </BreadcrumbItem>
@@ -217,62 +142,40 @@ export default function Headers({
             </div>
           </div>
 
-          {/* ================= RIGHT ================= */}
-
+          {/* Right */}
           <div className="flex shrink-0 items-center gap-1.5">
-            {/* Help */}
-
-            <button
-              type="button"
-              aria-label="Help"
-              className="rounded-full p-1.5 text-slate-500 hover:bg-slate-100"
-            >
-              <HelpCircle size={17} />
-            </button>
-
-            {/* User Menu */}
+            {role === "TEACHER" && <NoticeBell />}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2 hover:bg-slate-50"
-                >
+                <button type="button" className="flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2 hover:bg-slate-50">
                   <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white">
-                    {getInitials(displayName)}
+                    {getInitials(user?.fullName ?? "")}
                   </div>
-
                   <div className="hidden text-left leading-tight sm:block">
-                    <p className="text-xs font-medium text-slate-800">
-                      {displayName}
-                    </p>
-
+                    <p className="text-xs font-medium text-slate-800">{user?.fullName}</p>
                     <p className="text-[10px] text-slate-400">
-                      {roleName}
+                      {ROLE_LABELS[role]}
+                      {user?.isClassTeacher ? " · Class Teacher" : ""}
                     </p>
                   </div>
-
-                  <ChevronDown
-                    size={13}
-                    className="hidden text-slate-400 sm:block"
-                  />
+                  <ChevronDown size={13} className="hidden text-slate-400 sm:block" />
                 </button>
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem
-                  onClick={() => setProfileOpen(true)}
+                  onClick={() => (role === "TEACHER" ? navigate("/teacher/profile") : setProfileOpen(true))}
                 >
                   <User className="mr-2 h-4 w-4" />
                   View Profile
                 </DropdownMenuItem>
-
+                <DropdownMenuItem onClick={() => navigate("/change-password")}>
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  Change Password
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-
-                <DropdownMenuItem
-                  onClick={() => setLogoutOpen(true)}
-                  className="text-red-600 focus:text-red-600"
-                >
+                <DropdownMenuItem onClick={() => setLogoutOpen(true)} className="text-red-600 focus:text-red-600">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>
@@ -282,15 +185,7 @@ export default function Headers({
         </div>
       </header>
 
-      {/* ================= PROFILE ================= */}
-
-      <ProfileDialog
-        open={profileOpen}
-        onOpenChange={setProfileOpen}
-        user={user}
-      />
-
-      {/* ================= LOGOUT CONFIRM ================= */}
+      <ProfileDialog open={profileOpen} onOpenChange={setProfileOpen} user={user} />
 
       <ConfirmDialog
         open={logoutOpen}

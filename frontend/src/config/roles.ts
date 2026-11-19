@@ -1,25 +1,53 @@
 // src/config/roles.ts
+// Single source of truth for user types. Must match backend/src/constants/roles.ts.
+
 export const ROLES = {
-    ADMIN: 'Principal / Admin',
-    TEACHER: 'Teacher',
-    PARENT: 'Parent',
+  /** Platform owner — manages schools, belongs to no school */
+  SUPER_ADMIN: "SUPER_ADMIN",
+  PRINCIPAL: "PRINCIPAL",
+  /** School office staff: fees, admissions, staff records, transport... */
+  ADMIN: "ADMIN",
+  TEACHER: "TEACHER",
+  STUDENT: "STUDENT",
+  PARENT: "PARENT",
 } as const;
 
-export type RoleKey = keyof typeof ROLES;
-export type RoleName = (typeof ROLES)[RoleKey];
-// roles 
-// Optional: DB ids if you want to use them later
-// export const ROLE_IDS: Record<RoleKey, number> = {
-//   SUPER_ADMIN: 0,
-//   DIVISION_SUPER_ADMIN: 1007,
-//   DISTRICT_SUPER_ADMIN: 1008,
-//   ULB_SUPER_ADMIN: 1009,
-//   PLANT_ADMIN: 1,
-//   GATE_OPERATOR: 2,
-//   WB_OPERATOR: 3,
-//   PRIMARY_SEGREGATION_SUPERVISOR: 1014,
-//   SECONDARY_SEGREGATION_SUPERVISOR: 1015,
-//   WASTE_PROCESSING_SUPERVISOR: 1016,
-//   STOCK_MANAGER: 1017,
-//   SALES_MANAGER: 1018,
-// };
+export type UserRole = (typeof ROLES)[keyof typeof ROLES];
+
+export const ALL_ROLES: UserRole[] = Object.values(ROLES);
+
+/** Human readable role name (header, profile, etc.) */
+export const ROLE_LABELS: Record<UserRole, string> = {
+  SUPER_ADMIN: "Super Admin",
+  PRINCIPAL: "Principal",
+  ADMIN: "School Admin",
+  TEACHER: "Teacher",
+  STUDENT: "Student",
+  PARENT: "Parent",
+};
+
+/** Subtitle shown in the sidebar under the InstituteOS logo */
+export const ROLE_WORKSPACE: Record<UserRole, string> = {
+  SUPER_ADMIN: "Platform Console",
+  PRINCIPAL: "Principal Console",
+  ADMIN: "School Office",
+  TEACHER: "Teacher Workspace",
+  STUDENT: "Student Portal",
+  PARENT: "Parent Portal",
+};
+
+export const isUserRole = (value: unknown): value is UserRole =>
+  typeof value === "string" && (ALL_ROLES as string[]).includes(value);
+
+/** URL prefix per role, e.g. /teacher/..., /super-admin/... */
+export const ROLE_PATH: Record<UserRole, string> = {
+  SUPER_ADMIN: "super-admin",
+  PRINCIPAL: "principal",
+  ADMIN: "admin",
+  TEACHER: "teacher",
+  STUDENT: "student",
+  PARENT: "parent",
+};
+
+/** Where a user lands after login / when they hit a page they can't access */
+export const getHomeRoute = (role?: UserRole | null) => (role ? `/${ROLE_PATH[role]}/dashboard` : "/");

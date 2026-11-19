@@ -1,13 +1,5 @@
-import TeacherClasses from '@/components/teacher/TeacherClasses'
-import AppLayouts from '@/layout/AppLayouts'
-import React from 'react'
+import TeacherClasses from "@/components/teacher/TeacherClasses";
 
-const TeacherClassesPage = () => {
-  return (
-    <AppLayouts>
-        <TeacherClasses />
-    </AppLayouts>
-  )
-}
+const TeacherClassesPage = () => <TeacherClasses />;
 
-export default TeacherClassesPage
+export default TeacherClassesPage;
