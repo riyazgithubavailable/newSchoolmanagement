@@ -11,14 +11,38 @@ Three things go live, each on its own address:
 `render.yaml` in the repository root describes all three, so Render can create them in one go.
 
 ## 1. Production database (MongoDB Atlas)
-Never use the development database (`school_dev`) for real schools.
+Never use the development database (`school_dev`) for real schools: it holds seed/test data, other developers
+can read it, and a mistake while testing could change real records.
 
-1. Create a **separate project / cluster** for production (e.g. `school-prod`).
-2. **Database Access → Add New Database User**: one user only for the server (e.g. `api_server`), strong password.
+### Which option?
+| | Option A — separate cluster (recommended) | Option B — same cluster, separate database |
+|---|---|---|
+| When | before the first real (paying) school | demos / testing a deployment |
+| Isolation | full: own users, IP list, backups | only the database and its user are separate |
+| Free tier | needs a **new Atlas project** (one free M0 per project) | shares the dev cluster's 512 MB |
+| Backups | can move to a paid tier (M10+) with automatic backups | dev and prod share one tier |
+
+Moving later from B to A is easy (Atlas migration, or `mongodump` / `mongorestore`), so B is fine to start with.
+
+### Option A — separate cluster
+1. Atlas → **New Project** (e.g. `school-prod`) → create a cluster in it.
+2. **Database Access → Add New Database User**: one user only for the server (e.g. `api_server`), strong password,
+   role *Read and write to any database*.
 3. **Network Access → Add IP Address → `0.0.0.0/0`**. Render's free and starter plans have no fixed outgoing IP,
    so the strong database password is the protection here. (Paid plans with static IPs can be restricted.)
-4. **Connect → Drivers** → copy the connection string. Database name: `school_prod`.
-5. Turn on **backups** (Atlas → Backup) before real data arrives (needs a paid cluster tier).
+4. **Connect → Drivers** → copy the connection string. Database name (`MONGODB_DB_NAME`): `school_prod`.
+5. Before real data arrives, move the cluster to a paid tier and turn on **backups** (Atlas → Backup).
+
+### Option B — same cluster, separate database
+1. Keep the dev cluster; production simply uses `MONGODB_DB_NAME=school_prod` (dev uses `school_dev`).
+2. **Database Access → Add New Database User** for the server (e.g. `api_server`) → instead of a built-in role choose
+   **Specific Privileges → `readWrite` on database `school_prod`**, so this user can't touch `school_dev`.
+3. Restrict the developers' users (including the Android developer) to `readWrite` on `school_dev` only, so they
+   can't read real schools' data.
+4. **Network Access**: add `0.0.0.0/0` (see A.3).
+5. Use the **server user's** connection string in Render's `MONGODB_URI`.
+
+Switch to Option A before onboarding the first paying school.
 
 ## 2. Create the services on Render
 1. Push the code to GitHub (branch `main`).
