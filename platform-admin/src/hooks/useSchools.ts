@@ -6,7 +6,7 @@ import {
   type ListSchoolsParams,
   type PrincipalPayload,
   type SchoolStatus,
-} from "./platformService";
+} from "@/api/schoolsApi";
 
 export const platformKeys = {
   schools: (p: ListSchoolsParams) => ["platform", "schools", p] as const,

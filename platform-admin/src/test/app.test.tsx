@@ -7,8 +7,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 // jsdom has no canvas — the real library draws the QR code into one
 vi.mock("qrcode", () => ({ default: { toDataURL: vi.fn(async () => "data:image/png;base64,QR") } }));
 
-import PlatformApp from "@/platform/PlatformApp";
-import { clearSession, getSession } from "@/lib/auth";
+import PlatformApp from "@/App";
+import { clearSession, getSession } from "@/lib/session";
 import { queryClient } from "@/lib/queryClient";
 
 const json = (status: number, body: unknown) =>
@@ -79,8 +79,9 @@ describe("platform sign-in", () => {
     await waitFor(() => expect(window.location.hash).toBe("#/schools"));
     expect(bodyOf("/platform/auth/verify-2fa")).toEqual({ challengeToken: "challenge-1", code: "123456" });
     // platform sessions are never kept after the browser closes
-    expect(sessionStorage.getItem("ios_access_token")).toBe("a1");
-    expect(localStorage.getItem("ios_access_token")).toBeNull();
+    expect(getSession()?.accessToken).toBe("a1");
+    expect(sessionStorage.getItem("iosp_session")).toContain("a1");
+    expect(localStorage.length).toBe(0);
   });
 
   it("first sign-in goes to the 2FA setup with a QR code", async () => {

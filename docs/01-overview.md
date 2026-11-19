@@ -43,7 +43,7 @@ Class teacher is not a separate role: it's a teacher who is assigned to one sect
 | API | Node.js 20+, Express 5, TypeScript, Zod (validation) |
 | Database | MongoDB Atlas with Mongoose |
 | Auth | JWT access token (15 min) + rotating refresh token (30 days), bcrypt password hashes |
-| Web apps | React 18, Vite, TypeScript, Tailwind CSS, shadcn/ui, TanStack Query — **school app** (`frontend/`, port 8080) and **Platform Admin app** (`frontend/platform/` + `src/platform/`, port 8081), built and deployed separately |
+| Web apps | React 18, Vite, TypeScript, Tailwind CSS, TanStack Query — **school app** (`frontend/`, port 8080) and **Platform Admin app** (`platform-admin/`, port 8081): two separate projects, built and deployed separately |
 | Android app | Kotlin (separate repo / developer) — uses the same API |
 | Tests | Vitest (+ in-memory MongoDB for the API, Testing Library for the web) |
 | API docs | OpenAPI 3.1 generated from the Zod schemas, Swagger UI at `/api/docs` |
@@ -63,17 +63,16 @@ newSchoolmanagement/
 │   │   └── scripts/    seed script
 │   ├── tests/          API tests
 │   └── postman/        Postman collection
-├── frontend/           React web apps
-│   ├── platform/       entry of the Platform Admin app (index.html, main.tsx)
+├── frontend/           school web app (principal, admin, teacher, student, parent)
 │   └── src/
 │       ├── config/     roles, sidebar menu
 │       ├── contexts/   AuthContext
 │       ├── lib/        api client, session storage
 │       ├── services/   API calls (+ mock services for pages without APIs yet)
 │       ├── hooks/      TanStack Query hooks
-│       ├── platform/   Platform Admin app (login + 2FA, schools, audit log)
 │       ├── pages/      school app screens (auth, school, dashboards...)
 │       ├── components/ teacher pages, shared UI kit
 │       └── test/       web tests
+├── platform-admin/     Platform Admin app — platform owner only (login + 2FA, schools, audit log)
 └── docs/               this documentation
 ```

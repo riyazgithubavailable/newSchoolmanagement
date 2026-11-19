@@ -47,7 +47,7 @@ Each feature lives in `backend/src/modules/<feature>/`:
 ## Platform owner security
 | Layer | What |
 |---|---|
-| Separate app | Platform Admin is its own build/deployment (`frontend/platform`), `noindex` + `robots.txt`; the school app contains none of its code |
+| Separate app | Platform Admin is its own project (`platform-admin/`) and deployment, `noindex` + `robots.txt`; the school app contains none of its code |
 | Separate API | `/api/v1/platform/*`; the school `/auth/login` never accepts a super admin (school code required) |
 | 2-step verification | TOTP (RFC 6238, Google Authenticator compatible). Mandatory: until it's set up the session gets `403 MFA_SETUP_REQUIRED` everywhere except 2FA setup |
 | Secret storage | 2FA secrets AES-256-GCM encrypted (`ENCRYPTION_KEY`); a used code can't be replayed (`twoFactor.lastUsedStep`) |

@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, ArrowLeft, KeyRound, Loader2, ShieldCheck } from "lucide-react";
-import { platformApi } from "../platformApi";
-import { usePlatformAuth } from "../PlatformAuth";
+import { platformApi } from "@/api/platformApi";
+import { usePlatformAuth } from "@/auth/PlatformAuth";
 
 export const darkInput =
   "w-full rounded-[10px] border border-white/15 bg-white/[0.06] px-3.5 py-2.5 text-[14px] text-white placeholder:text-white/35 focus:border-[#E5BE6A] focus:outline-none focus:ring-2 focus:ring-[#E5BE6A]/30";

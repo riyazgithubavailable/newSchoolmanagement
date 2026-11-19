@@ -69,10 +69,13 @@ npm run dev            # http://localhost:8080
 ```
 Restart `npm run dev` after changing `.env`. In development the login page shows demo account buttons.
 
-### Platform Admin app
+## 4b. Platform Admin app (separate project)
 ```bash
-npm run dev:platform     # http://localhost:8081
-npm run build:platform   # → frontend/dist-platform (deploy to its own address, e.g. admin.yourdomain.com)
+cd platform-admin
+npm install
+cp .env.example .env    # VITE_API_URL=http://localhost:5000/api/v1
+npm run dev             # http://localhost:8081
+npm run build           # → platform-admin/dist (deploy to its own address, e.g. admin.yourdomain.com)
 ```
 First sign-in asks you to set up **2-step verification**: install Google Authenticator / Microsoft
 Authenticator / Authy, scan the QR code, type the 6-digit code. From then on every sign-in needs the code.
@@ -82,6 +85,7 @@ Platform sessions last 1 day and live only until the browser is closed.
 ```bash
 cd backend && npm test    # uses a temporary in-memory MongoDB — never touches Atlas
 cd frontend && npm test   # network calls are mocked
+cd platform-admin && npm test
 ```
 
 ## 6. Troubleshooting

@@ -10,9 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "dev:platform": "vite --config vite.platform.config.ts",
-    "build:platform": "vite build --config vite.platform.config.ts"
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -61,7 +59,6 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.462.0",
     "next-themes": "^0.3.0",
-    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
@@ -84,7 +81,6 @@
     "@testing-library/react": "^16.0.0",
     "@types/file-saver": "^2.0.7",
     "@types/node": "^22.16.5",
-    "@types/qrcode": "^1.5.6",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^3.11.0",

@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 import QRCode from "qrcode";
 import { Loader2, Smartphone } from "lucide-react";
 import { toast } from "sonner";
-import { platformApi } from "../platformApi";
-import { usePlatformAuth } from "../PlatformAuth";
+import { platformApi } from "@/api/platformApi";
+import { usePlatformAuth } from "@/auth/PlatformAuth";
 import { ErrorBox, PlatformShell, darkInput, goldButton } from "./PlatformLogin";
 
 export default function SetupTwoFactor() {

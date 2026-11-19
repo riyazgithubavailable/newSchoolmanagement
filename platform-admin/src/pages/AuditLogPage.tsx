@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, ScrollText } from "lucide-react";
-import { platformApi } from "../platformApi";
+import { platformApi } from "@/api/platformApi";
 import { cn } from "@/lib/utils";
 import {
   EmptyState,
@@ -14,7 +14,7 @@ import {
   errorMessage,
   inputClass,
   secondaryBtn,
-} from "@/components/shared/PageKit";
+} from "@/components/PageKit";
 
 const ACTIONS: Record<string, { label: string; tone: string }> = {
   PLATFORM_LOGIN: { label: "Signed in", tone: "bg-green-50 text-green-700" },

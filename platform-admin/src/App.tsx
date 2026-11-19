@@ -1,20 +1,14 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { HashRouter, Navigate, NavLink, Outlet, Route, Routes } from "react-router-dom";
+import { Toaster } from "sonner";
 import { Building2, LogOut, ScrollText, ShieldCheck } from "lucide-react";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { queryClient } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
-import { PlatformAuthProvider, RequireOwner, RequireSetup, usePlatformAuth } from "./PlatformAuth";
+import { PlatformAuthProvider, PublicOnly, RequireOwner, RequireSetup, usePlatformAuth } from "@/auth/PlatformAuth";
 import PlatformLogin from "./pages/PlatformLogin";
 import SetupTwoFactor from "./pages/SetupTwoFactor";
 import SchoolsPage from "./pages/SchoolsPage";
 import AuditLogPage from "./pages/AuditLogPage";
-
-function PublicOnly() {
-  const { user } = usePlatformAuth();
-  if (!user) return <Outlet />;
-  return <Navigate to={user.twoFactorEnabled ? "/schools" : "/setup-2fa"} replace />;
-}
 
 function Shell() {
   const { user, logout } = usePlatformAuth();
@@ -58,10 +52,10 @@ function Shell() {
   );
 }
 
-export default function PlatformApp() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Sonner richColors position="top-right" />
+      <Toaster richColors position="top-right" />
       <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <PlatformAuthProvider>
           <Routes>

@@ -19,7 +19,7 @@ A React web app and a Kotlin Android app share one Node.js API.
 cd backend && npm install && cp .env.example .env   # put your Atlas URL in .env
 npm run seed && npm run dev                          # API on http://localhost:5000
 cd ../frontend && npm install && npm run dev         # school app on http://localhost:8080
-npm run dev:platform                                 # Platform Admin app on http://localhost:8081
+cd ../platform-admin && npm install && npm run dev  # Platform Admin app on http://localhost:8081
 ```
 
 Interactive API docs: **http://localhost:5000/api/docs**

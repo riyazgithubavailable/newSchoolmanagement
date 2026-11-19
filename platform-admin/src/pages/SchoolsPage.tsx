@@ -30,8 +30,8 @@ import {
   useResetPrincipalPassword,
   useSchools,
   useSetSchoolStatus,
-} from "../usePlatformQueries";
-import type { PrincipalPayload, SchoolStatus, SchoolSummary } from "../platformService";
+} from "@/hooks/useSchools";
+import type { PrincipalPayload, SchoolStatus, SchoolSummary } from "@/api/schoolsApi";
 import {
   EmptyState,
   ErrorState,
@@ -49,8 +49,8 @@ import {
   inputClass,
   primaryBtn,
   secondaryBtn,
-} from "@/components/shared/PageKit";
-import { CredentialsModal, generatePassword, type Credentials } from "@/components/shared/Credentials";
+} from "@/components/PageKit";
+import { CredentialsModal, generatePassword, type Credentials } from "@/components/Credentials";
 
 const PAGE_SIZE = 10;
 
