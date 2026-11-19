@@ -35,9 +35,9 @@ Check it works: open http://localhost:5000/api/v1/health — `"database": "conne
 
 ## Platform owner account
 ```bash
-npm run create-super-admin -- --email you@company.com --name "Your Name"   # asks for the password
+npm run super-admin -- create --email you@company.com --name "Your Name"   # also: reset-password, reset-2fa
 ```
-Use this on production. `npm run seed` is development-only.
+Use this on production. `npm run seed` is development-only. The owner signs in on the separate Platform Admin app with 2-step verification.
 
 ## First run: demo data
 
@@ -83,7 +83,7 @@ into collection variables and used by every other request automatically.
   `ACCOUNT_REJECTED`, `ACCOUNT_DISABLED`, `SCHOOL_SUSPENDED`, `TOO_MANY_ATTEMPTS`, `VALIDATION_ERROR`
   (field errors in `error.details`).
 
-## Schools API (`/api/v1/schools`) — Super Admin only
+## Schools API (`/api/v1/platform/schools`) — Super Admin only (Platform Admin app)
 
 | Method | Path | Purpose |
 |---|---|---|

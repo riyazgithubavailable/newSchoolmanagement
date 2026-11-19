@@ -42,24 +42,23 @@ Check: http://localhost:5000/api/v1/health → `"database": "connected"`.
 ### Demo accounts (development)
 | Account | School code | Email | Password |
 |---|---|---|---|
-| Super Admin | — | superadmin@instituteos.local | SuperAdmin@123 |
+| Super Admin (Platform Admin app, port 8081) | — | superadmin@instituteos.local | SuperAdmin@123 |
 | Principal | DEMO01 | principal@demo.school | Principal@123 |
 | Admin | DEMO01 | admin@demo.school | Admin@123 |
 | Teacher | DEMO01 | teacher@demo.school | Teacher@123 |
 
-### Your own super admin account
-The seed creates a demo super admin for development. To create your real platform-owner account
-(and **always** on a live server — the seed refuses to run in production because it adds a demo school):
+### Platform owner (super admin)
+The seed creates a demo platform owner for development (`superadmin@instituteos.local` / `SuperAdmin@123`).
+Real accounts are managed **only from the server terminal** — there is no sign-up page, API or email reset:
 
 ```bash
 cd backend
-npm run create-super-admin -- --email you@company.com --name "Your Name"
-# you are asked for the password (hidden). On a server without a terminal:
-#   SUPERADMIN_PASSWORD=... npm run create-super-admin -- --email ...
+npm run super-admin -- create         --email you@company.com --name "Your Name"   # asks for the password (hidden)
+npm run super-admin -- reset-password --email you@company.com                      # forgot password
+npm run super-admin -- reset-2fa      --email you@company.com                      # lost phone
+# servers without a terminal: SUPERADMIN_PASSWORD=... npm run super-admin -- create --email ...
 ```
-There is intentionally **no API or sign-up page** for super admins. Run the command again with another
-email to add a second owner (e.g. a co-founder). Forgot the password? Use *Forgot password* on the
-login page with *Platform owner* selected.
+`npm run seed` refuses to run in production (it would add a demo school).
 
 ## 4. Frontend
 ```bash
@@ -68,7 +67,16 @@ npm install
 cp .env.example .env   # VITE_API_URL=http://localhost:5000/api/v1
 npm run dev            # http://localhost:8080
 ```
-Restart `npm run dev` after changing `.env`. In development the login page shows a **Fill demo** button.
+Restart `npm run dev` after changing `.env`. In development the login page shows demo account buttons.
+
+### Platform Admin app
+```bash
+npm run dev:platform     # http://localhost:8081
+npm run build:platform   # → frontend/dist-platform (deploy to its own address, e.g. admin.yourdomain.com)
+```
+First sign-in asks you to set up **2-step verification**: install Google Authenticator / Microsoft
+Authenticator / Authy, scan the QR code, type the 6-digit code. From then on every sign-in needs the code.
+Platform sessions last 1 day and live only until the browser is closed.
 
 ## 5. Tests
 ```bash

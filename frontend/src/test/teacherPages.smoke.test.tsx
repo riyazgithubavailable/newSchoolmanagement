@@ -49,7 +49,7 @@ describe("route guards", () => {
   it("redirects anonymous users to login", async () => {
     window.location.hash = "#/teacher/leave";
     render(<App />);
-    expect(await screen.findByRole("heading", { name: /welcome back/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /^sign in$/i })).toBeInTheDocument();
   });
 
   it("keeps a parent out of teacher pages", async () => {

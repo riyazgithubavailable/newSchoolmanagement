@@ -7,6 +7,7 @@ Order matters: each phase builds the data the next one needs.
 | 0 | Git branch & commits, Swagger/OpenAPI docs, project docs | ✅ Done |
 | 1 | Change password, forced first-login change, forgot/reset via email, admin & platform password resets | ✅ Done |
 | 2 | **School setup**: school profile, academic year, classes & sections (templates, streams), subjects, staff accounts created by principal/admin, class teachers, subject teachers; self sign-up removed | ✅ Done |
+| 2b | **Platform security**: separate Platform Admin app, separate API, mandatory 2FA, IP allowlist, short sessions, audit log, server-only recovery; new school login page (school-name look-up, no role tabs) | ✅ Done |
 | 3 | Students & parents: admission records, parent accounts linked to children, parent activation (admission no. + DOB), bulk Excel import | ⏳ Next |
 | 4 | Timetable (admin builds it, teachers/students read it) | Planned |
 | 5 | Teacher APIs: attendance, homework/assignments, marks/results, notices, leave, messages — replace frontend mocks | Planned |
@@ -19,4 +20,5 @@ Order matters: each phase builds the data the next one needs.
 - Teacher pages still use mock data (Phase 5). The class-teacher flag now comes from the real section assignment.
 - Sections are not yet per academic year: at year rollover class teachers carry over until changed.
 - No email provider configured yet — set `SMTP_*` before going live.
+- Deploy the Platform Admin app on its own address and set `CORS_ORIGIN`, `ENCRYPTION_KEY` and (ideally) `PLATFORM_ALLOWED_IPS` in production.
 - `schoolId` filtering is written in each service (`findInSchool`, `currentSchoolId`) and covered by isolation tests in `backend/tests`; a Mongoose plugin could enforce it automatically later.

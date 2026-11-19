@@ -54,6 +54,10 @@
     {
       "key": "teacherId",
       "value": ""
+    },
+    {
+      "key": "challengeToken",
+      "value": ""
     }
   ],
   "item": [
@@ -77,6 +81,32 @@
           ],
           "path": [
             "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "School name by code (login screen)",
+      "request": {
+        "method": "GET",
+        "auth": {
+          "type": "noauth"
+        },
+        "header": [
+          {
+            "key": "X-Client",
+            "value": "postman"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/public/schools/DEMO01",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "public",
+            "schools",
+            "DEMO01"
           ]
         }
       }
@@ -167,54 +197,6 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"schoolCode\": \"DEMO01\",\n  \"email\": \"neha@demo.school\",\n  \"password\": \"Teacher123\",\n  \"role\": \"TEACHER\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "auth",
-                "login"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Login (Super Admin — no school code)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "const j = pm.response.json();",
-                  "if (j.success && j.data && j.data.tokens) {",
-                  "  pm.collectionVariables.set(\"accessToken\", j.data.tokens.accessToken);",
-                  "  pm.collectionVariables.set(\"refreshToken\", j.data.tokens.refreshToken);",
-                  "}"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "auth": {
-              "type": "noauth"
-            },
-            "header": [
-              {
-                "key": "X-Client",
-                "value": "postman"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"superadmin@instituteos.local\",\n  \"password\": \"SuperAdmin@123\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
@@ -621,8 +603,229 @@
       ]
     },
     {
+      "name": "Platform (Super Admin)",
+      "description": "Platform owner only. Step 1 login → Step 2 verify-2fa with the code from your authenticator app. First time: setup → enable.",
+      "item": [
+        {
+          "name": "1. Login (email + password)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.success && j.data && j.data.tokens) {",
+                  "  pm.collectionVariables.set(\"accessToken\", j.data.tokens.accessToken);",
+                  "  pm.collectionVariables.set(\"refreshToken\", j.data.tokens.refreshToken);",
+                  "}",
+                  "if (j.success && j.data && j.data.challengeToken) pm.collectionVariables.set(\"challengeToken\", j.data.challengeToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"superadmin@instituteos.local\",\n  \"password\": \"SuperAdmin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/platform/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "platform",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. Verify 2FA code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.success && j.data && j.data.tokens) {",
+                  "  pm.collectionVariables.set(\"accessToken\", j.data.tokens.accessToken);",
+                  "  pm.collectionVariables.set(\"refreshToken\", j.data.tokens.refreshToken);",
+                  "}",
+                  "if (j.success && j.data && j.data.challengeToken) pm.collectionVariables.set(\"challengeToken\", j.data.challengeToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"challengeToken\": \"{{challengeToken}}\",\n  \"code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/platform/auth/verify-2fa",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "platform",
+                "auth",
+                "verify-2fa"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/platform/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "platform",
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "First time: start 2FA setup (QR secret)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/platform/2fa/setup",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "platform",
+                "2fa",
+                "setup"
+              ]
+            }
+          }
+        },
+        {
+          "name": "First time: enable 2FA with code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const j = pm.response.json();",
+                  "if (j.success && j.data && j.data.tokens) {",
+                  "  pm.collectionVariables.set(\"accessToken\", j.data.tokens.accessToken);",
+                  "  pm.collectionVariables.set(\"refreshToken\", j.data.tokens.refreshToken);",
+                  "}",
+                  "if (j.success && j.data && j.data.challengeToken) pm.collectionVariables.set(\"challengeToken\", j.data.challengeToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/platform/2fa/enable",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "platform",
+                "2fa",
+                "enable"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Audit log",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-Client",
+                "value": "postman"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/platform/audit-logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "platform",
+                "audit-logs"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Schools (Super Admin)",
-      "description": "Run \"Auth → Login (Super Admin)\" first.",
+      "description": "Run the Platform folder first (login + 2FA).",
       "item": [
         {
           "name": "Create school + principal",
@@ -655,11 +858,12 @@
               "raw": "{\n  \"school\": {\n    \"name\": \"Delhi Public School\",\n    \"code\": \"DPS01\",\n    \"email\": \"office@dps.edu\",\n    \"phone\": \"9876543210\",\n    \"address\": \"Bhubaneswar, Odisha\"\n  },\n  \"principal\": {\n    \"fullName\": \"Anita Rao\",\n    \"email\": \"principal@dps.edu\",\n    \"phone\": \"9876500000\",\n    \"password\": \"Principal123\"\n  }\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/schools",
+              "raw": "{{baseUrl}}/platform/schools",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "platform",
                 "schools"
               ]
             }
@@ -676,11 +880,12 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/schools?page=1&limit=20&search=&status=",
+              "raw": "{{baseUrl}}/platform/schools?page=1&limit=20&search=&status=",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "platform",
                 "schools"
               ],
               "query": [
@@ -715,11 +920,12 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/schools/{{schoolId}}",
+              "raw": "{{baseUrl}}/platform/schools/{{schoolId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "platform",
                 "schools",
                 "{{schoolId}}"
               ]
@@ -745,11 +951,12 @@
               "raw": "{\n  \"status\": \"SUSPENDED\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/schools/{{schoolId}}/status",
+              "raw": "{{baseUrl}}/platform/schools/{{schoolId}}/status",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "platform",
                 "schools",
                 "{{schoolId}}",
                 "status"
@@ -776,11 +983,12 @@
               "raw": "{\n  \"status\": \"ACTIVE\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/schools/{{schoolId}}/status",
+              "raw": "{{baseUrl}}/platform/schools/{{schoolId}}/status",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "platform",
                 "schools",
                 "{{schoolId}}",
                 "status"
@@ -807,11 +1015,12 @@
               "raw": "{\n  \"fullName\": \"New Principal\",\n  \"email\": \"new.principal@dps.edu\",\n  \"password\": \"Principal456\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/schools/{{schoolId}}/principals",
+              "raw": "{{baseUrl}}/platform/schools/{{schoolId}}/principals",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "platform",
                 "schools",
                 "{{schoolId}}",
                 "principals"
@@ -838,11 +1047,12 @@
               "raw": "{\n  \"newPassword\": \"TempPass22\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/schools/{{schoolId}}/principals/{{principalId}}/reset-password",
+              "raw": "{{baseUrl}}/platform/schools/{{schoolId}}/principals/{{principalId}}/reset-password",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
+                "platform",
                 "schools",
                 "{{schoolId}}",
                 "principals",

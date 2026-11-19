@@ -1,5 +1,5 @@
 // src/services/platformService.ts
-// Super Admin (platform owner) API: /api/v1/schools
+// Platform owner API: /api/v1/platform/schools
 
 import { apiRequest, apiRequestFull } from "@/lib/api";
 
@@ -68,25 +68,25 @@ export const platformService = {
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined && v !== "") qs.set(k, String(v));
     });
-    const res = await apiRequestFull<SchoolSummary[]>(`/schools?${qs.toString()}`);
+    const res = await apiRequestFull<SchoolSummary[]>(`/platform/schools?${qs.toString()}`);
     return { items: res.data, meta: res.meta as unknown as SchoolListMeta };
   },
 
-  getSchool: (id: string) => apiRequest<SchoolSummary>(`/schools/${id}`),
+  getSchool: (id: string) => apiRequest<SchoolSummary>(`/platform/schools/${id}`),
 
   createSchool: (payload: CreateSchoolPayload) =>
-    apiRequest<SchoolSummary>("/schools", { method: "POST", body: payload }),
+    apiRequest<SchoolSummary>("/platform/schools", { method: "POST", body: payload }),
 
   setSchoolStatus: (id: string, status: SchoolStatus) =>
-    apiRequest<SchoolSummary>(`/schools/${id}/status`, { method: "PATCH", body: { status } }),
+    apiRequest<SchoolSummary>(`/platform/schools/${id}/status`, { method: "PATCH", body: { status } }),
 
   addPrincipal: (id: string, payload: PrincipalPayload) =>
-    apiRequest<SchoolSummary>(`/schools/${id}/principals`, { method: "POST", body: payload }),
+    apiRequest<SchoolSummary>(`/platform/schools/${id}/principals`, { method: "POST", body: payload }),
 };
 
 /** Sets a temporary password; the principal must change it at next sign in. */
 export const resetPrincipalPassword = (schoolId: string, userId: string, newPassword: string) =>
-  apiRequest<null>(`/schools/${schoolId}/principals/${userId}/reset-password`, {
+  apiRequest<null>(`/platform/schools/${schoolId}/principals/${userId}/reset-password`, {
     method: "POST",
     body: { newPassword },
   });

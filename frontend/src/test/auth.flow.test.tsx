@@ -43,8 +43,8 @@ afterEach(() => {
 function fillLogin() {
   window.location.hash = "#/";
   render(<App />);
-  fireEvent.change(screen.getByLabelText(/school id/i), { target: { value: "demo01" } });
-  fireEvent.change(screen.getByLabelText(/email \/ username/i), { target: { value: "teacher@demo.school" } });
+  fireEvent.change(screen.getByLabelText(/school code/i), { target: { value: "demo01" } });
+  fireEvent.change(screen.getByLabelText(/^email$/i), { target: { value: "teacher@demo.school" } });
   fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: "Teacher@123" } });
 }
 
@@ -60,12 +60,13 @@ describe("login screen", () => {
 
     const login = calls().find((c) => c.url.endsWith("/auth/login"))!;
     expect(login.url).toBe("http://localhost:5000/api/v1/auth/login");
+    // no role tabs any more: the server knows the account's role
     expect(JSON.parse(String(login.init.body))).toEqual({
-      schoolCode: "demo01",
+      schoolCode: "DEMO01",
       email: "teacher@demo.school",
       password: "Teacher@123",
-      role: "TEACHER",
     });
+    expect(localStorage.getItem("ios_last_school_code")).toBe("DEMO01"); // remembered for next time
     expect((login.init.headers as Record<string, string>)["X-Client"]).toBe("web");
     expect(getSession()).toMatchObject({ accessToken: "access-1", refreshToken: "refresh-1", user: { schoolCode: "DEMO01" } });
   });
@@ -132,5 +133,26 @@ describe("token refresh (lib/api)", () => {
 
     await waitFor(() => expect(window.location.hash).toBe("#/"));
     expect(getSession()).toBeNull();
+  });
+});
+
+describe("school code look-up", () => {
+  it("shows the school's name while typing, and blocks unknown codes", async () => {
+    fetchMock.mockImplementation((url: string) =>
+      url.endsWith("/public/schools/DPS01")
+        ? json(200, { success: true, data: { code: "DPS01", name: "Delhi Public School" } })
+        : json(404, { success: false, error: { code: "SCHOOL_NOT_FOUND", message: "No school with this code." } }),
+    );
+    window.location.hash = "#/";
+    render(<App />);
+    const code = screen.getByLabelText(/school code/i);
+
+    fireEvent.change(code, { target: { value: "dps01" } });
+    expect(code).toHaveValue("DPS01");
+    expect(await screen.findByText("Delhi Public School", {}, { timeout: 3000 })).toBeInTheDocument();
+
+    fireEvent.change(code, { target: { value: "XYZ99" } });
+    expect(await screen.findByText(/no school found with this code/i, {}, { timeout: 3000 })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^sign in$/i })).toBeDisabled();
   });
 });

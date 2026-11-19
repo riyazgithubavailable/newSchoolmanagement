@@ -28,12 +28,13 @@ is in `backend/postman/`.
 ### Auth
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
-| POST | `/auth/login` | – | `{ schoolCode?, email, password, role? }` → `{ user, tokens }` |
+| GET | `/public/schools/:code` | – | login screen: `{ code, name }` of an active school |
+| POST | `/auth/login` | – | `{ schoolCode, email, password, role? }` → `{ user, tokens }` (school users only) |
 | POST | `/auth/refresh` | – | `{ refreshToken }` → new pair |
 | POST | `/auth/logout` | – | `{ refreshToken }` |
 | GET | `/auth/me` | Bearer | current user |
 | POST | `/auth/change-password` | Bearer | `{ currentPassword, newPassword }` → new tokens |
-| POST | `/auth/forgot-password` | – | `{ schoolCode?, email }` → always 200 |
+| POST | `/auth/forgot-password` | – | `{ schoolCode, email }` → always 200 |
 | POST | `/auth/reset-password` | – | `{ token, newPassword }` |
 
 ### School setup (Principal / Admin) — `/school`
@@ -75,15 +76,25 @@ Teachers' `/auth/login` and `/auth/me` responses include `user.classTeacherOf` (
 | PATCH | `/users/:id/status` | `{ status: ACTIVE \| REJECTED \| DISABLED }` |
 | POST | `/users/:id/reset-password` | `{ newPassword }` temporary password |
 
-### Schools (Super Admin)
+### Platform (Super Admin, Platform Admin app only) — `/platform`
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/schools` | `{ school: {...}, principal: {...} }` |
-| GET | `/schools?status=&search=&page=&limit=` | list; `meta.summary` = totals |
-| GET | `/schools/:id` | one school |
-| PATCH | `/schools/:id/status` | `{ status: ACTIVE \| SUSPENDED }` |
-| POST | `/schools/:id/principals` | add a principal |
-| POST | `/schools/:id/principals/:userId/reset-password` | temporary password |
+| POST | `/platform/auth/login` | `{ email, password }` → `{ twoFactorRequired: true, challengeToken }` or (first time) a setup-only session |
+| POST | `/platform/auth/verify-2fa` | `{ challengeToken, code }` → session |
+| GET | `/platform/auth/me` | current owner (`twoFactorEnabled`) |
+| POST | `/platform/2fa/setup` | → `{ secret, otpauthUrl }` for the QR code |
+| POST | `/platform/2fa/enable` | `{ code }` → full session |
+| GET | `/platform/audit-logs?action=&page=&limit=` | audit log |
+
+### Schools (Super Admin) — now under `/platform/schools`
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/platform/schools` | `{ school: {...}, principal: {...} }` |
+| GET | `/platform/schools?status=&search=&page=&limit=` | list; `meta.summary` = totals |
+| GET | `/platform/schools/:id` | one school |
+| PATCH | `/platform/schools/:id/status` | `{ status: ACTIVE \| SUSPENDED }` |
+| POST | `/platform/schools/:id/principals` | add a principal |
+| POST | `/platform/schools/:id/principals/:userId/reset-password` | temporary password |
 
 ## Error codes
 | Code | When |
@@ -96,6 +107,7 @@ Teachers' `/auth/login` and `/auth/me` responses include `user.classTeacherOf` (
 | `UNAUTHORIZED` / `INVALID_TOKEN` / `TOKEN_EXPIRED` | access token problems |
 | `INVALID_REFRESH_TOKEN` | session over → sign in again |
 | `PASSWORD_CHANGE_REQUIRED` | temporary password must be changed |
+| `MFA_SETUP_REQUIRED` / `INVALID_2FA_CODE` / `MFA_CHALLENGE_EXPIRED` / `MFA_ALREADY_ENABLED` | platform 2-step verification |
 | `WRONG_PASSWORD` / `SAME_PASSWORD` | change-password problems |
 | `INVALID_RESET_TOKEN` | reset link expired/used |
 | `FORBIDDEN` | role not allowed |

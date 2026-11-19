@@ -8,7 +8,7 @@ vi.mock("../src/services/mailer.js", () => ({
   }),
 }));
 
-import { PASSWORD, api, bearer, clearDb, login, passwordHash, useTestDb } from "./helpers.js";
+import { PASSWORD, api, bearer, clearDb, createOwner, login, ownerToken, passwordHash, useTestDb } from "./helpers.js";
 import { SchoolModel } from "../src/modules/schools/school.model.js";
 import { UserModel } from "../src/modules/users/user.model.js";
 import { PasswordResetModel } from "../src/modules/auth/passwordReset.model.js";
@@ -16,15 +16,16 @@ import { PasswordResetModel } from "../src/modules/auth/passwordReset.model.js";
 useTestDb();
 
 let schoolId: string;
+let ownerSecret = "";
 
 beforeEach(async () => {
   sent.length = 0;
   await clearDb();
   const school = await SchoolModel.create({ code: "AAA01", name: "School A" });
   schoolId = String(school._id);
+  ownerSecret = await createOwner();
   const hash = await passwordHash();
   await UserModel.create([
-    { schoolId: null, fullName: "Owner", email: "owner@platform.com", role: "SUPER_ADMIN", status: "ACTIVE", passwordHash: hash },
     { schoolId: school._id, fullName: "Principal", email: "p@a.com", role: "PRINCIPAL", status: "ACTIVE", passwordHash: hash },
     { schoolId: school._id, fullName: "Office Admin", email: "admin@a.com", role: "ADMIN", status: "ACTIVE", passwordHash: hash },
     { schoolId: school._id, fullName: "Teacher", email: "t@a.com", role: "TEACHER", status: "ACTIVE", passwordHash: hash },
@@ -35,14 +36,15 @@ const loginAs = async (email: string, password = PASSWORD) => {
   const res = await login(email === "owner@platform.com" ? { email, password } : { schoolCode: "AAA01", email, password });
   return res;
 };
-const tokenOf = async (email: string, password = PASSWORD) => (await loginAs(email, password)).body.data.tokens.accessToken as string;
+const tokenOf = async (email: string, password = PASSWORD) =>
+  email === "owner@platform.com" ? ownerToken(ownerSecret) : ((await loginAs(email, password)).body.data.tokens.accessToken as string);
 const idOf = async (email: string) => String((await UserModel.findOne({ email }))!._id);
 
 describe("first login with a temporary password", () => {
   async function newPrincipalSession() {
     const owner = await tokenOf("owner@platform.com");
     await api()
-      .post("/api/v1/schools")
+      .post("/api/v1/platform/schools")
       .set(bearer(owner))
       .send({
         school: { name: "Delhi Public School", code: "DPS01" },
@@ -172,7 +174,7 @@ describe("admins resetting someone else's password", () => {
   it("super admin can reset a principal's password", async () => {
     const owner = await tokenOf("owner@platform.com");
     const res = await api()
-      .post(`/api/v1/schools/${schoolId}/principals/${await idOf("p@a.com")}/reset-password`)
+      .post(`/api/v1/platform/schools/${schoolId}/principals/${await idOf("p@a.com")}/reset-password`)
       .set(bearer(owner))
       .send({ newPassword: "TempPass22" });
     expect(res.status).toBe(200);
@@ -180,7 +182,7 @@ describe("admins resetting someone else's password", () => {
 
     // but not a teacher through the principal endpoint
     const t = await api()
-      .post(`/api/v1/schools/${schoolId}/principals/${await idOf("t@a.com")}/reset-password`)
+      .post(`/api/v1/platform/schools/${schoolId}/principals/${await idOf("t@a.com")}/reset-password`)
       .set(bearer(owner))
       .send({ newPassword: "TempPass22" });
     expect(t.status).toBe(404);

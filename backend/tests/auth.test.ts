@@ -133,14 +133,11 @@ describe("POST /auth/login", () => {
     expect(res.body.error.code).toBe("SCHOOL_SUSPENDED");
   });
 
-  it("lets the super admin log in without a school code", async () => {
-    const res = await login({ email: "owner@platform.com", password: PASSWORD });
-    expect(res.status).toBe(200);
-    expect(res.body.data.user).toMatchObject({ role: "SUPER_ADMIN", school: null });
-
-    // but a school principal can't log in without the school code
-    const p = await login({ email: "principal@a.com", password: PASSWORD });
-    expect(p.status).toBe(401);
+  it("the platform owner can't use the school login at all", async () => {
+    const noCode = await login({ email: "owner@platform.com", password: PASSWORD });
+    expect(noCode.status).toBe(400); // school code is required here
+    const principal = await login({ email: "principal@a.com", password: PASSWORD });
+    expect(principal.status).toBe(400);
   });
 });
 
@@ -251,5 +248,17 @@ describe("error format", () => {
       success: false,
       error: { code: "NOT_FOUND", message: "Route GET /api/v1/nope not found" },
     });
+  });
+});
+
+describe("public school look-up (login screen)", () => {
+  it("returns only the name of an active school", async () => {
+    const res = await api().get("/api/v1/public/schools/aaa01");
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual({ code: "AAA01", name: "School A" });
+
+    await SchoolModel.updateOne({ code: "BBB01" }, { status: "SUSPENDED" });
+    expect((await api().get("/api/v1/public/schools/BBB01")).status).toBe(404);
+    expect((await api().get("/api/v1/public/schools/NOPE")).body.error.code).toBe("SCHOOL_NOT_FOUND");
   });
 });

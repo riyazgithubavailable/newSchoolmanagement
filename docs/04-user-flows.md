@@ -4,8 +4,14 @@
 Super admins are created only from the server terminal:
 `npm run create-super-admin -- --email you@company.com --name "Your Name"` (see [02-setup](02-setup.md)).
 
+## Platform owner sign-in (Platform Admin app)
+1. Open the Platform Admin app (development: http://localhost:8081) — it is **not** linked from the school app.
+2. Email + password → then the 6-digit code from the authenticator app.
+3. Very first time: scan the QR code and confirm a code to turn on 2-step verification.
+4. Forgot password / lost phone → on the server: `npm run super-admin -- reset-password` / `reset-2fa`.
+
 ## Onboarding a new school (platform owner)
-1. Sign in → login page → **Platform owner? Sign in here** (no school code).
+1. Sign in to the Platform Admin app.
 2. **Schools → Add School**: school name, code (suggested from the name, e.g. *Delhi Public School* → `DPS`),
    contact details, and the principal's name, email and a generated password.
 3. A box shows the login details — **Copy details** and send them to the principal. The password is not
@@ -17,6 +23,10 @@ Super admins are created only from the server terminal:
 2. Because someone else chose that password, the app opens **Set your own password** and nothing else
    works until it's changed (enforced by the API too).
 3. After saving, other devices are signed out and the dashboard opens.
+
+## School sign-in
+Login page: **school code** (the school's name appears as you type, and the code is remembered on that
+device), email and password. There are no role tabs — the account decides where you land.
 
 ## Setting up the school (principal / office admin)
 After the first sign in the dashboard shows a **setup checklist**; each step links to the right page.
@@ -49,8 +59,8 @@ Things in use can't be deleted (a subject with teachers assigned, a section with
 There is **no public sign-up**. Older accounts that are still *PENDING* can be approved or rejected under
 *Staff → Pending approval*.
 
-## Forgot password
-1. Login → **Forgot password?** → school code + email (platform owner: no school code).
+## Forgot password (school users)
+1. Login → **Forgot password?** → school code + email.
 2. The answer is always the same, so nobody can discover registered emails.
 3. An email with a link valid for **30 minutes** is sent (in development it is printed in the backend
    terminal, and the page shows a *dev only* link).
@@ -61,7 +71,7 @@ There is **no public sign-up**. Older accounts that are still *PENDING* can be a
 |---|---|---|
 | Principal | anyone in their school | temporary password, user must change it |
 | Admin | anyone except principals | same |
-| Platform owner | a school's principal (Schools → details → Reset password) | same |
+| Platform owner | a school's principal (Platform Admin → Schools → details → Reset password) | same |
 
 ## Changing your own password
 Header menu → **Change Password** (teachers also in *My Profile → Security*). Other devices are

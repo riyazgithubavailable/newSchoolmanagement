@@ -20,6 +20,21 @@ const userSchema = new Schema(
       default: USER_STATUS.PENDING,
       index: true,
     },
+    /** 2-step verification (required for SUPER_ADMIN). Secrets are AES-encrypted. */
+    twoFactor: {
+      type: new Schema(
+        {
+          enabled: { type: Boolean, default: false },
+          secret: { type: String, select: false },
+          pendingSecret: { type: String, select: false },
+          /** last accepted 30-second step — a code can't be used twice */
+          lastUsedStep: { type: Number, default: 0 },
+          enabledAt: { type: Date },
+        },
+        { _id: false },
+      ),
+      default: undefined,
+    },
     /** HR details for staff (principal, admin, teacher) */
     staffProfile: {
       type: new Schema(

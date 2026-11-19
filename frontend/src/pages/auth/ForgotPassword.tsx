@@ -5,7 +5,6 @@ import { passwordService } from "@/services/authService";
 import { AuthAlert, AuthShell, authButton, authInput } from "./AuthShell";
 
 export default function ForgotPassword() {
-  const [platform, setPlatform] = useState(false);
   const [schoolCode, setSchoolCode] = useState("");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -17,10 +16,7 @@ export default function ForgotPassword() {
     setError("");
     setBusy(true);
     try {
-      const res = await passwordService.forgotPassword({
-        ...(platform ? {} : { schoolCode: schoolCode.trim() }),
-        email: email.trim(),
-      });
+      const res = await passwordService.forgotPassword({ schoolCode: schoolCode.trim(), email: email.trim() });
       setDone({
         message: "If an account exists with these details, we've emailed a link to reset your password. It's valid for 30 minutes.",
         devToken: res.devResetToken,
@@ -55,8 +51,7 @@ export default function ForgotPassword() {
       ) : (
         <form onSubmit={submit} className="space-y-3.5">
           {error && <AuthAlert kind="error">{error}</AuthAlert>}
-          {!platform && (
-            <div>
+          <div>
               <label htmlFor="fp-school" className="mb-1.5 block text-[12px] font-medium text-[#374151]">
                 School ID / Code
               </label>
@@ -68,8 +63,7 @@ export default function ForgotPassword() {
                 placeholder="e.g. DPS01"
                 required
               />
-            </div>
-          )}
+          </div>
           <div>
             <label htmlFor="fp-email" className="mb-1.5 block text-[12px] font-medium text-[#374151]">
               Email
@@ -86,13 +80,6 @@ export default function ForgotPassword() {
           </div>
           <button type="submit" className={authButton} disabled={busy}>
             {busy ? "Sending..." : "Send reset link"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setPlatform((p) => !p)}
-            className="w-full text-center text-[12px] text-[#9CA3AF] hover:text-[#0F1B33]"
-          >
-            {platform ? "I belong to a school" : "Platform owner? Reset without school code"}
           </button>
         </form>
       )}

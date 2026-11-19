@@ -101,7 +101,7 @@ describe("forgot & reset password", () => {
     );
     window.location.hash = "#/";
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: /forgot password/i }));
+    fireEvent.click(screen.getByRole("link", { name: /forgot password/i }));
 
     expect(await screen.findByRole("heading", { name: "Forgot password?" })).toBeInTheDocument();
     type(/school id/i, "dps01");

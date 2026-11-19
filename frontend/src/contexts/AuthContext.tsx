@@ -23,7 +23,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(() => getSession()?.user ?? null);
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const session = getSession();
+    // the platform owner uses the separate Platform Admin app, never this one
+    if (session?.user.role === "SUPER_ADMIN") {
+      clearSession();
+      return null;
+    }
+    return session?.user ?? null;
+  });
 
   const endSession = useCallback(() => {
     clearSession();

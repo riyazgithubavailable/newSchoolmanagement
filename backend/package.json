@@ -12,7 +12,8 @@
     "seed": "tsx src/scripts/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "create-super-admin": "tsx src/scripts/createSuperAdmin.ts"
+    "create-super-admin": "tsx src/scripts/superAdmin.ts create",
+    "super-admin": "tsx src/scripts/superAdmin.ts"
   },
   "engines": {
     "node": ">=20"

@@ -4,7 +4,6 @@
 import {
   Bell,
   BookMarked,
-  Building2,
   CalendarCheck,
   CalendarDays,
   CalendarOff,
@@ -103,16 +102,12 @@ const schoolMenu = (role: UserRole): MenuItem[] => {
   ];
 };
 
-const SUPER_ADMIN_MENU: MenuItem[] = [{ label: "Schools", to: getHomeRoute("SUPER_ADMIN"), icon: Building2 }];
-
 export function getMenuItems(role: UserRole, isClassTeacher: boolean): MenuItem[] {
   const items =
     role === "TEACHER"
       ? TEACHER_MENU
-      : role === "SUPER_ADMIN"
-        ? SUPER_ADMIN_MENU
-        : role === "PRINCIPAL" || role === "ADMIN"
-          ? schoolMenu(role)
-          : dashboardOnly(role);
+      : role === "PRINCIPAL" || role === "ADMIN"
+        ? schoolMenu(role)
+        : dashboardOnly(role);
   return items.filter((item) => !item.classTeacherOnly || isClassTeacher);
 }

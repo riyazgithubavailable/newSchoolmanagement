@@ -5,7 +5,7 @@
 ```
 HTTP request
   → cors, express.json
-  → /api/v1 router → module router (auth | users | schools | school | staff)
+  → /api/v1 router → module router (public | auth | users | platform | school | staff)
       → rate limit (login, password reset)
       → requireAuth        verifies the JWT, blocks users who must change their password
       → requireRole(...)   e.g. PRINCIPAL, ADMIN
@@ -44,6 +44,19 @@ Each feature lives in `backend/src/modules/<feature>/`:
 | Password reset | random 32-byte token, SHA-256 hash stored, valid 30 minutes, single use, newest link only |
 | Suspension | suspending a school or disabling a user deletes their refresh tokens immediately |
 
+## Platform owner security
+| Layer | What |
+|---|---|
+| Separate app | Platform Admin is its own build/deployment (`frontend/platform`), `noindex` + `robots.txt`; the school app contains none of its code |
+| Separate API | `/api/v1/platform/*`; the school `/auth/login` never accepts a super admin (school code required) |
+| 2-step verification | TOTP (RFC 6238, Google Authenticator compatible). Mandatory: until it's set up the session gets `403 MFA_SETUP_REQUIRED` everywhere except 2FA setup |
+| Secret storage | 2FA secrets AES-256-GCM encrypted (`ENCRYPTION_KEY`); a used code can't be replayed (`twoFactor.lastUsedStep`) |
+| Login challenge | after the password a 5-minute `challengeToken` (different JWT audience) — it is not an access token |
+| Limits | 5 failed attempts / 15 min per IP; refresh token 1 day; session in sessionStorage only |
+| IP allowlist | `PLATFORM_ALLOWED_IPS` — other IPs get a plain 404 |
+| Recovery | password / 2FA reset only via `npm run super-admin` on the server, never by email |
+| Audit log | `auditlogs`: sign-ins (success/failure), 2FA, school created/suspended, principal added/reset — with IP and user agent |
+
 ## Collections (so far)
 
 | Collection | Key fields |
@@ -52,6 +65,7 @@ Each feature lives in `backend/src/modules/<feature>/`:
 | `users` | `schoolId` (null for super admin), `email` (unique per school), `role`, `status` (PENDING/ACTIVE/REJECTED/DISABLED), `passwordHash`, `mustChangePassword` |
 | `refreshtokens` | `userId`, `tokenHash`, `client` (web/android), `expiresAt` (TTL) |
 | `passwordresets` | `userId`, `tokenHash`, `expiresAt` (TTL) |
+| `auditlogs` | `actorId`, `actorEmail`, `action`, `schoolId`, `targetType`, `targetId`, `details`, `ip`, `userAgent`, `createdAt` |
 | `academicyears` | `schoolId`, `name` ("2026-27", unique per school), `startDate`, `endDate`, `isCurrent` (one per school) |
 | `classes` | `schoolId`, `name`, `order`, `stream` (11–12) — unique (`name`, `stream`) per school |
 | `sections` | `schoolId`, `classId`, `name` ("A"), `roomNo`, `classTeacherId` (unique per school: one section per teacher) |

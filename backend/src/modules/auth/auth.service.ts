@@ -63,6 +63,7 @@ export function toPublicUser(user: UserDoc, school: SchoolDoc | null) {
 /** Public user + (for teachers) the section they are class teacher of. */
 export async function sessionUser(user: UserDoc, school: SchoolDoc | null) {
   const base = toPublicUser(user, school);
+  if (user.role === ROLES.SUPER_ADMIN) return { ...base, classTeacherOf: null, twoFactorEnabled: !!user.twoFactor?.enabled };
   if (user.role !== ROLES.TEACHER || !user.schoolId) return { ...base, classTeacherOf: null };
   return { ...base, classTeacherOf: await classTeacherOf(String(user.schoolId), String(user._id)) };
 }
@@ -70,14 +71,18 @@ export async function sessionUser(user: UserDoc, school: SchoolDoc | null) {
 const invalidCredentials = () =>
   ApiError.unauthorized("INVALID_CREDENTIALS", "School code, email or password is incorrect.");
 
-async function issueTokens(user: UserDoc, info: ClientInfo) {
+export async function issueTokens(user: UserDoc, info: ClientInfo) {
+  const isPlatform = user.role === ROLES.SUPER_ADMIN;
   const accessToken = signAccessToken({
     sub: String(user._id),
     role: user.role as Role,
     schoolId: user.schoolId ? String(user.schoolId) : null,
     ...(user.mustChangePassword ? { mustChangePassword: true } : {}),
+    // the platform owner must have 2-step verification before doing anything
+    ...(isPlatform && !user.twoFactor?.enabled ? { mfaSetupRequired: true } : {}),
   });
-  const refresh = signRefreshToken(String(user._id));
+  // platform owner sessions are much shorter than school users'
+  const refresh = signRefreshToken(String(user._id), isPlatform ? env.platform.refreshExpiresIn : undefined);
   await RefreshTokenModel.create({
     userId: user._id,
     tokenHash: hashToken(refresh.token),
@@ -113,20 +118,11 @@ function assertCanLogin(user: UserDoc, school: SchoolDoc | null) {
 
 export const authService = {
   async login(input: LoginInput, info: ClientInfo) {
-    let school: SchoolDoc | null = null;
-    if (input.schoolCode) {
-      school = await SchoolModel.findOne({ code: input.schoolCode });
-    }
-
-    // No school code → only the platform super admin can log in
-    const user =
-      input.schoolCode && !school
-        ? null
-        : await UserModel.findOne(
-            school
-              ? { schoolId: school._id, email: input.email }
-              : { schoolId: null, email: input.email, role: ROLES.SUPER_ADMIN },
-          ).select("+passwordHash");
+    // School users only. The platform owner signs in through /platform/auth/login.
+    const school = await SchoolModel.findOne({ code: input.schoolCode });
+    const user = school
+      ? await UserModel.findOne({ schoolId: school._id, email: input.email }).select("+passwordHash")
+      : null;
 
     const passwordOk = await bcrypt.compare(input.password, user?.passwordHash ?? DUMMY_HASH);
     if (!user || !passwordOk) throw invalidCredentials();
@@ -208,14 +204,12 @@ export const authService = {
    * find out which emails are registered.
    */
   async forgotPassword(input: ForgotPasswordInput): Promise<{ devResetToken?: string }> {
-    const school = input.schoolCode ? await SchoolModel.findOne({ code: input.schoolCode }) : null;
-    if (input.schoolCode && (!school || school.status !== SCHOOL_STATUS.ACTIVE)) return {};
+    // School users only — the platform owner recovers access from the server
+    // (npm run super-admin -- reset-password ...), never by email.
+    const school = await SchoolModel.findOne({ code: input.schoolCode });
+    if (!school || school.status !== SCHOOL_STATUS.ACTIVE) return {};
 
-    const user = await UserModel.findOne(
-      school
-        ? { schoolId: school._id, email: input.email }
-        : { schoolId: null, email: input.email, role: ROLES.SUPER_ADMIN },
-    );
+    const user = await UserModel.findOne({ schoolId: school._id, email: input.email });
     if (!user || user.status !== USER_STATUS.ACTIVE) return {};
 
     // only the newest link works

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 import request from "supertest";
 import { app } from "../src/app.js";
+import { createOwner, ownerToken as ownerTokenFor } from "./helpers.js";
 import { hashPassword } from "../src/modules/auth/auth.service.js";
 import { RefreshTokenModel } from "../src/modules/auth/refreshToken.model.js";
 import { SchoolModel } from "../src/modules/schools/school.model.js";
@@ -24,22 +25,13 @@ afterAll(async () => {
 
 beforeEach(async () => {
   await Promise.all([UserModel.deleteMany({}), SchoolModel.deleteMany({}), RefreshTokenModel.deleteMany({})]);
-  await UserModel.create({
-    schoolId: null,
-    fullName: "Owner",
-    email: "owner@platform.com",
-    role: "SUPER_ADMIN",
-    status: "ACTIVE",
-    passwordHash: await hashPassword(PASSWORD),
-  });
+  ownerSecret = await createOwner();
 });
 
 const api = () => request(app);
 
-async function ownerToken() {
-  const res = await api().post("/api/v1/auth/login").send({ email: "owner@platform.com", password: PASSWORD });
-  return res.body.data.tokens.accessToken as string;
-}
+let ownerSecret = "";
+const ownerToken = () => ownerTokenFor(ownerSecret);
 
 const newSchool = (code = "DPS01", principalEmail = "principal@dps.edu") => ({
   school: { name: "Delhi Public School", code: code.toLowerCase(), email: "office@dps.edu", phone: "", address: "Bhubaneswar" },
@@ -47,7 +39,7 @@ const newSchool = (code = "DPS01", principalEmail = "principal@dps.edu") => ({
 });
 
 async function createSchool(token: string, body = newSchool()) {
-  return api().post("/api/v1/schools").set("Authorization", `Bearer ${token}`).send(body);
+  return api().post("/api/v1/platform/schools").set("Authorization", `Bearer ${token}`).send(body);
 }
 
 describe("POST /schools", () => {
@@ -100,7 +92,7 @@ describe("POST /schools", () => {
     expect(res.status).toBe(403);
     expect(await SchoolModel.countDocuments()).toBe(1);
 
-    expect((await api().post("/api/v1/schools").send(newSchool("NOAUTH"))).status).toBe(401);
+    expect((await api().post("/api/v1/platform/schools").send(newSchool("NOAUTH"))).status).toBe(401);
   });
 });
 
@@ -120,11 +112,11 @@ describe("GET /schools", () => {
       passwordHash: await hashPassword("Teacher123"),
     });
     await api()
-      .patch(`/api/v1/schools/${b.body.data.id}/status`)
+      .patch(`/api/v1/platform/schools/${b.body.data.id}/status`)
       .set("Authorization", `Bearer ${token}`)
       .send({ status: "SUSPENDED" });
 
-    const res = await api().get("/api/v1/schools?search=bbb").set("Authorization", `Bearer ${token}`);
+    const res = await api().get("/api/v1/platform/schools?search=bbb").set("Authorization", `Bearer ${token}`);
     expect(res.status).toBe(200);
     expect(res.body.data).toHaveLength(1);
     expect(res.body.data[0]).toMatchObject({
@@ -145,7 +137,7 @@ describe("school status and principals", () => {
     const session = await api().post("/api/v1/auth/login").send(creds);
 
     const suspend = await api()
-      .patch(`/api/v1/schools/${id}/status`)
+      .patch(`/api/v1/platform/schools/${id}/status`)
       .set("Authorization", `Bearer ${token}`)
       .send({ status: "SUSPENDED" });
     expect(suspend.status).toBe(200);
@@ -154,7 +146,7 @@ describe("school status and principals", () => {
     expect(refresh.status).toBe(401);
     expect((await api().post("/api/v1/auth/login").send(creds)).body.error.code).toBe("SCHOOL_SUSPENDED");
 
-    await api().patch(`/api/v1/schools/${id}/status`).set("Authorization", `Bearer ${token}`).send({ status: "ACTIVE" });
+    await api().patch(`/api/v1/platform/schools/${id}/status`).set("Authorization", `Bearer ${token}`).send({ status: "ACTIVE" });
     expect((await api().post("/api/v1/auth/login").send(creds)).status).toBe(200);
   });
 
@@ -163,7 +155,7 @@ describe("school status and principals", () => {
     const id = (await createSchool(token)).body.data.id;
     const add = (email: string) =>
       api()
-        .post(`/api/v1/schools/${id}/principals`)
+        .post(`/api/v1/platform/schools/${id}/principals`)
         .set("Authorization", `Bearer ${token}`)
         .send({ fullName: "New Principal", email, password: "Principal456" });
 
@@ -176,9 +168,9 @@ describe("school status and principals", () => {
 
   it("returns 404 / 400 for unknown or malformed school ids", async () => {
     const token = await ownerToken();
-    const missing = await api().get(`/api/v1/schools/${new mongoose.Types.ObjectId()}`).set("Authorization", `Bearer ${token}`);
+    const missing = await api().get(`/api/v1/platform/schools/${new mongoose.Types.ObjectId()}`).set("Authorization", `Bearer ${token}`);
     expect(missing.status).toBe(404);
-    const bad = await api().get("/api/v1/schools/not-an-id").set("Authorization", `Bearer ${token}`);
+    const bad = await api().get("/api/v1/platform/schools/not-an-id").set("Authorization", `Bearer ${token}`);
     expect(bad.status).toBe(400);
   });
 });

@@ -46,6 +46,17 @@ export const env = {
     accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN?.trim() || "15m",
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN?.trim() || "30d",
   },
+  platform: {
+    /** comma-separated IPs allowed to reach /platform/* (empty = any IP) */
+    allowedIps: (process.env.PLATFORM_ALLOWED_IPS ?? "")
+      .split(",")
+      .map((ip) => ip.trim())
+      .filter(Boolean),
+    /** platform owner sessions are short */
+    refreshExpiresIn: process.env.PLATFORM_REFRESH_EXPIRES_IN?.trim() || "1d",
+  },
+  /** encrypts secrets stored in the DB (2FA keys). Falls back to a key derived from JWT_REFRESH_SECRET. */
+  encryptionKey: process.env.ENCRYPTION_KEY?.trim() || "",
   /** Web app address — used in links inside emails (password reset...) */
   webAppUrl: (process.env.WEB_APP_URL?.trim() || "http://localhost:8080").replace(/\/$/, ""),
   mail: {

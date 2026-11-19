@@ -30,8 +30,8 @@ import {
   useResetPrincipalPassword,
   useSchools,
   useSetSchoolStatus,
-} from "@/hooks/usePlatformQueries";
-import type { PrincipalPayload, SchoolStatus, SchoolSummary } from "@/services/platformService";
+} from "../usePlatformQueries";
+import type { PrincipalPayload, SchoolStatus, SchoolSummary } from "../platformService";
 import {
   EmptyState,
   ErrorState,
@@ -63,7 +63,7 @@ function useDebounced<T>(value: T, ms = 300) {
   return v;
 }
 
-export default function SuperAdminDashboard() {
+export default function SchoolsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<SchoolStatus | "">("");
   const [page, setPage] = useState(1);

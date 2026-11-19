@@ -214,7 +214,8 @@ export const openApiDocument = {
     { name: "Health" },
     { name: "Auth", description: "Sign in, tokens and passwords" },
     { name: "Users", description: "Accounts inside a school — Principal / Admin only" },
-    { name: "Schools", description: "Platform owner (SUPER_ADMIN) only" },
+    { name: "Platform", description: "Platform owner (SUPER_ADMIN) sign-in with 2-step verification, audit log. Used only by the Platform Admin app; can be limited to PLATFORM_ALLOWED_IPS." },
+    { name: "Schools", description: "Platform owner (SUPER_ADMIN) only — /platform/schools" },
     { name: "School setup", description: "Principal / Admin: profile, academic years, classes, sections, subjects, assignments" },
     { name: "Staff", description: "Principal / Admin: teacher and office-admin accounts" },
   ],
@@ -335,11 +336,20 @@ export const openApiDocument = {
       },
     },
 
+    "/public/schools/{code}": {
+      get: {
+        tags: ["Auth"],
+        summary: "Login screen: name of an active school by its code (no auth, rate limited)",
+        parameters: [{ name: "code", in: "path", required: true, schema: { type: "string" } }],
+        responses: { 200: ok("School", { type: "object", properties: { code: { type: "string" }, name: { type: "string" } } }), 404: err("Unknown / inactive", ["SCHOOL_NOT_FOUND"]) },
+      },
+    },
+
     /* ------------------------------- Auth ------------------------------ */
     "/auth/login": {
       post: {
         tags: ["Auth"],
-        summary: "Sign in (omit schoolCode for the platform super admin)",
+        summary: "School user sign in (the platform owner uses /platform/auth/login)",
         requestBody: body(loginSchema, {
           schoolCode: "DEMO01",
           email: "principal@demo.school",
@@ -410,6 +420,87 @@ export const openApiDocument = {
       },
     },
 
+    /* ------------------------------ Platform ---------------------------- */
+    "/platform/auth/login": {
+      post: {
+        tags: ["Platform"],
+        summary: "Platform owner step 1: email + password",
+        description:
+          "If 2FA is on → { twoFactorRequired: true, challengeToken } (valid 5 min). On the very first sign-in → a limited session; every call except /platform/auth/me and /platform/2fa/* returns 403 MFA_SETUP_REQUIRED.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { type: "object", required: ["email", "password"], properties: { email: { type: "string" }, password: { type: "string" } } },
+            },
+          },
+        },
+        responses: {
+          200: ok("Next step or session", { type: "object" }),
+          401: err("Wrong email / password", ["INVALID_CREDENTIALS"]),
+          429: err("Too many attempts (5 / 15 min)", ["TOO_MANY_ATTEMPTS"]),
+        },
+      },
+    },
+    "/platform/auth/verify-2fa": {
+      post: {
+        tags: ["Platform"],
+        summary: "Platform owner step 2: 6-digit authenticator code",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["challengeToken", "code"],
+                properties: { challengeToken: { type: "string" }, code: { type: "string", pattern: "^\\d{6}$" } },
+              },
+            },
+          },
+        },
+        responses: {
+          200: ok("Signed in", ref("Session")),
+          401: err("Wrong / reused code or expired challenge", ["INVALID_2FA_CODE", "MFA_CHALLENGE_EXPIRED"]),
+        },
+      },
+    },
+    "/platform/auth/me": {
+      get: { tags: ["Platform"], summary: "Current platform owner", security: secured, responses: { 200: ok("User", { type: "object" }) } },
+    },
+    "/platform/2fa/setup": {
+      post: {
+        tags: ["Platform"],
+        summary: "Start 2FA setup → { secret, otpauthUrl } (show as QR code)",
+        security: secured,
+        responses: { 200: ok("Secret", { type: "object" }), 409: err("Already on", ["MFA_ALREADY_ENABLED"]) },
+      },
+    },
+    "/platform/2fa/enable": {
+      post: {
+        tags: ["Platform"],
+        summary: "Confirm 2FA with the first code → new full session",
+        security: secured,
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { type: "object", required: ["code"], properties: { code: { type: "string" } } } } },
+        },
+        responses: { 200: ok("Enabled", ref("Session")), 400: err("Wrong code", ["INVALID_2FA_CODE", "MFA_NOT_STARTED"]) },
+      },
+    },
+    "/platform/audit-logs": {
+      get: {
+        tags: ["Platform"],
+        summary: "Audit log (newest first)",
+        security: secured,
+        parameters: [
+          { name: "action", in: "query", schema: { type: "string" } },
+          { name: "page", in: "query", schema: { type: "integer", default: 1 } },
+          { name: "limit", in: "query", schema: { type: "integer", default: 30 } },
+        ],
+        responses: { 200: ok("Entries", { type: "array", items: { type: "object" } }, { meta: ref("PageMeta") }) },
+      },
+    },
+
     /* ------------------------------- Users ----------------------------- */
     "/users": {
       get: {
@@ -461,7 +552,7 @@ export const openApiDocument = {
     },
 
     /* ------------------------------ Schools ---------------------------- */
-    "/schools": {
+    "/platform/schools": {
       post: {
         tags: ["Schools"],
         summary: "Create a school and its first principal",
@@ -485,7 +576,7 @@ export const openApiDocument = {
         responses: { 200: ok("Schools", { type: "array", items: ref("School") }, { meta: ref("PageMeta") }), 403: forbidden },
       },
     },
-    "/schools/{id}": {
+    "/platform/schools/{id}": {
       get: {
         tags: ["Schools"],
         summary: "One school",
@@ -494,7 +585,7 @@ export const openApiDocument = {
         responses: { 200: ok("School", ref("School")), 404: err("Not found", ["SCHOOL_NOT_FOUND"]) },
       },
     },
-    "/schools/{id}/status": {
+    "/platform/schools/{id}/status": {
       patch: {
         tags: ["Schools"],
         summary: "Suspend (logs every user out) or activate a school",
@@ -504,7 +595,7 @@ export const openApiDocument = {
         responses: { 200: ok("Updated", ref("School")), 404: err("Not found", ["SCHOOL_NOT_FOUND"]) },
       },
     },
-    "/schools/{id}/principals": {
+    "/platform/schools/{id}/principals": {
       post: {
         tags: ["Schools"],
         summary: "Add another principal account",
@@ -514,7 +605,7 @@ export const openApiDocument = {
         responses: { 201: ok("Created", ref("School")), 409: err("Duplicate email", ["EMAIL_TAKEN"]) },
       },
     },
-    "/schools/{id}/principals/{userId}/reset-password": {
+    "/platform/schools/{id}/principals/{userId}/reset-password": {
       post: {
         tags: ["Schools"],
         summary: "Set a temporary password for a principal",

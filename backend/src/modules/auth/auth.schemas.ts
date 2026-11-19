@@ -22,8 +22,7 @@ export const passwordRule = z
   .regex(/\d/, "Password must contain a number.");
 
 export const loginSchema = z.object({
-  /** Omit only for SUPER_ADMIN (platform) login */
-  schoolCode: schoolCode.optional(),
+  schoolCode,
   email,
   password: z.string({ error: "Password is required." }).min(1, "Password is required."),
   /** Role tab chosen on the login screen — optional, checked if sent */
@@ -40,8 +39,7 @@ export const changePasswordSchema = z.object({
 });
 
 export const forgotPasswordSchema = z.object({
-  /** omit only for the platform super admin */
-  schoolCode: schoolCode.optional(),
+  schoolCode,
   email,
 });
 

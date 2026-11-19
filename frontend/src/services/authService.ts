@@ -7,8 +7,7 @@ import type { UserRole } from "@/config/roles";
 import type { AuthUser } from "@/types/school";
 
 export interface LoginPayload {
-  /** omit only for the platform super admin */
-  schoolCode?: string;
+  schoolCode: string;
   email: string;
   password: string;
   role?: UserRole;
@@ -77,7 +76,7 @@ export const passwordService = {
   },
 
   /** Always resolves the same way (doesn't reveal whether the email exists). */
-  async forgotPassword(payload: { schoolCode?: string; email: string }): Promise<{ devResetToken?: string }> {
+  async forgotPassword(payload: { schoolCode: string; email: string }): Promise<{ devResetToken?: string }> {
     return apiRequest<{ devResetToken?: string } | null>("/auth/forgot-password", {
       method: "POST",
       body: payload,

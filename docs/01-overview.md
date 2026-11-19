@@ -17,7 +17,8 @@ Platform owner (SUPER_ADMIN)
 - All schools live in **one database**. Every school-owned record carries a `schoolId`, and the API
   always filters by the signed-in user's school, so one school can never see another's data.
 - Users sign in with **school code + email + password**. The same email may exist in two schools.
-- The platform owner signs in without a school code.
+- The platform owner uses a **separate Platform Admin app** (own address, e.g. `admin.yourdomain.com`,
+  hidden from search engines) with mandatory 2-step verification. School users never see it.
 
 ## Roles
 
@@ -42,7 +43,7 @@ Class teacher is not a separate role: it's a teacher who is assigned to one sect
 | API | Node.js 20+, Express 5, TypeScript, Zod (validation) |
 | Database | MongoDB Atlas with Mongoose |
 | Auth | JWT access token (15 min) + rotating refresh token (30 days), bcrypt password hashes |
-| Web app | React 18, Vite, TypeScript, Tailwind CSS, shadcn/ui, TanStack Query |
+| Web apps | React 18, Vite, TypeScript, Tailwind CSS, shadcn/ui, TanStack Query — **school app** (`frontend/`, port 8080) and **Platform Admin app** (`frontend/platform/` + `src/platform/`, port 8081), built and deployed separately |
 | Android app | Kotlin (separate repo / developer) — uses the same API |
 | Tests | Vitest (+ in-memory MongoDB for the API, Testing Library for the web) |
 | API docs | OpenAPI 3.1 generated from the Zod schemas, Swagger UI at `/api/docs` |
@@ -62,14 +63,16 @@ newSchoolmanagement/
 │   │   └── scripts/    seed script
 │   ├── tests/          API tests
 │   └── postman/        Postman collection
-├── frontend/           React web app
+├── frontend/           React web apps
+│   ├── platform/       entry of the Platform Admin app (index.html, main.tsx)
 │   └── src/
 │       ├── config/     roles, sidebar menu
 │       ├── contexts/   AuthContext
 │       ├── lib/        api client, session storage
 │       ├── services/   API calls (+ mock services for pages without APIs yet)
 │       ├── hooks/      TanStack Query hooks
-│       ├── pages/      screens (auth, dashboards...)
+│       ├── platform/   Platform Admin app (login + 2FA, schools, audit log)
+│       ├── pages/      school app screens (auth, school, dashboards...)
 │       ├── components/ teacher pages, shared UI kit
 │       └── test/       web tests
 └── docs/               this documentation

@@ -17,7 +17,6 @@ import NotFound from "@/pages/NotFound";
 
 /* Dashboards */
 import TeacherDashboard from "@/pages/DashboardsUser/TeacherDashboard";
-import SuperAdminDashboard from "@/pages/DashboardsUser/SuperAdminDashboard";
 import ParentDashboard from "@/pages/DashboardsUser/ParentDashboard";
 import StudentDashboard from "@/pages/DashboardsUser/StudentDashboard";
 
@@ -117,13 +116,6 @@ const AppRoutes = () => (
         </Route>
       );
     })}
-
-    {/* Super admin (platform owner) */}
-    <Route element={<RequireRole roles={["SUPER_ADMIN"]} />}>
-      <Route element={<AppLayouts />}>
-        <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
-      </Route>
-    </Route>
 
 
     {/* Parent */}
