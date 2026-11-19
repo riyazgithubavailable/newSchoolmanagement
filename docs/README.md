@@ -12,6 +12,7 @@ A React web app and a Kotlin Android app share one Node.js API.
 | [04 — User flows](04-user-flows.md) | Onboarding a school, first login, sign-up approval, passwords, suspension |
 | [05 — API guide](05-api.md) | Conventions, endpoints, error codes, rules for web & Android clients |
 | [06 — Roadmap](06-roadmap.md) | What's done, what's next, known gaps |
+| [07 — Deployment](07-deployment.md) | Going live on Render + MongoDB Atlas (`render.yaml`) |
 
 **Quick start**
 

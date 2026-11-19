@@ -13,7 +13,7 @@ Order matters: each phase builds the data the next one needs.
 | 5 | Teacher APIs: attendance, homework/assignments, marks/results, notices, leave, messages — replace frontend mocks | Planned |
 | 6 | Student & parent views (web + Android) | Planned |
 | 7 | SaaS business: plans/subscriptions, trial & expiry, file uploads, push notifications (FCM), audit log | Planned |
-| 8 | Deployment: production cluster, hosting, backups, monitoring | Planned |
+| 8 | Deployment: production cluster, hosting, backups, monitoring — `render.yaml` + [07 — Deployment](07-deployment.md) ready | 🟡 Config ready |
 
 ## Known gaps / decisions to revisit
 - Access tokens of a disabled user stay valid for up to 15 minutes (refresh and `/auth/me` stop at once).
